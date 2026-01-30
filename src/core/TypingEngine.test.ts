@@ -13,6 +13,13 @@ describe("TypingEngine", () => {
     expect(engine.text).toBe(text)
     expect(engine.cursorPosition).toBe(0)
     expect(engine.isComplete).toBe(false)
+    expect(engine.startTime).toBeNull()
+    expect(engine.endTime).toBeNull()
+  })
+
+  it("should start timer on first input", () => {
+    engine.processInput("H")
+    expect(engine.startTime).not.toBeNull()
   })
 
   it("should process correct input", () => {
@@ -29,13 +36,29 @@ describe("TypingEngine", () => {
     expect(engine.getCharStatus(0)).toBe(CharStatus.Incorrect)
   })
 
-  it("should complete the text", () => {
-    "Hello".split("").forEach(char => {
+  it("should calculate accuracy", () => {
+    engine.processInput("H") // Correct
+    engine.processInput("x") // Incorrect ('e')
+    engine.processInput("l") // Correct
+    engine.processInput("l") // Correct
+    
+    // 3 correct, 1 incorrect, total 4 typed
+    // Accuracy: (3/4) * 100 = 75%
+    expect(engine.accuracy).toBe(75)
+  })
+
+  it("should complete the text and stop timer", async () => {
+    const chars = "Hello".split("")
+    
+    for (const char of chars) {
       engine.processInput(char)
-    })
+      await new Promise(r => setTimeout(r, 1)) // Ensure non-zero time
+    }
 
     expect(engine.isComplete).toBe(true)
     expect(engine.cursorPosition).toBe(5)
+    expect(engine.endTime).not.toBeNull()
+    expect(engine.wpm).toBeGreaterThan(0)
   })
 
   it("should not process input after completion", () => {

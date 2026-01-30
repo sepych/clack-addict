@@ -1,18 +1,35 @@
-import { createCliRenderer, Box, TextRenderable } from "@opentui/core"
+import { createCliRenderer, Box, TextRenderable, StyledText, fg } from "@opentui/core"
 import { THEME } from "./src/config/theme"
-import { SAMPLE_TEXT } from "./src/config/text"
+import { getRandomSample } from "./src/config/text"
 import { TypingEngine } from "./src/core/TypingEngine"
 import { renderGameText } from "./src/ui/TextRenderer"
 
 const renderer = await createCliRenderer()
 
-// Initialize Game State
-const engine = new TypingEngine(SAMPLE_TEXT)
+// Game State
+type GameState = 'PLAYING' | 'COMPLETE'
+let currentState: GameState = 'PLAYING'
+let engine = new TypingEngine(getRandomSample())
 
 const textRenderable = new TextRenderable(renderer, { content: renderGameText(engine) })
+const statusRenderable = new TextRenderable(renderer, { content: "" })
 
 function updateDisplay() {
   textRenderable.content = renderGameText(engine)
+  
+  if (currentState === 'COMPLETE') {
+    const wpm = engine.wpm
+    const acc = engine.accuracy
+    statusRenderable.content = new StyledText([
+      fg(THEME.fg)("\n\n"),
+      fg(THEME.correct)("Complete! "),
+      fg(THEME.fg)(`WPM: ${wpm} | Acc: ${acc}%`),
+      fg(THEME.fg)("\nPress Enter to continue...")
+    ])
+  } else {
+    statusRenderable.content = ""
+  }
+  
   renderer.requestRender()
 }
 
@@ -23,12 +40,14 @@ const app = Box(
     backgroundColor: THEME.bg,
     justifyContent: "center",
     alignItems: "center",
+    flexDirection: "column",
   },
   Box(
     {
       padding: 2,
     },
-    textRenderable
+    textRenderable,
+    statusRenderable
   )
 )
 
@@ -45,18 +64,25 @@ renderer.keyInput.on("keypress", (keyEvent) => {
     process.exit(0)
   }
 
+  if (currentState === 'COMPLETE') {
+    if (key === 'return' || key === 'enter') {
+      // Reset game
+      engine = new TypingEngine(getRandomSample())
+      currentState = 'PLAYING'
+      updateDisplay()
+    }
+    return
+  }
+
+  // PLAYING state
   if (keyEvent.sequence && keyEvent.sequence.length === 1) {
     const processed = engine.processInput(keyEvent.sequence)
 
     if (processed) {
-      updateDisplay()
-
       if (engine.isComplete) {
-        // Allow the UI to update one last time before exiting/printing
-        setTimeout(() => {
-          console.log("\n\nComplete!")
-        }, 10)
+        currentState = 'COMPLETE'
       }
+      updateDisplay()
     }
   }
 })
