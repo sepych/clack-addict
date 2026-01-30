@@ -1,45 +1,18 @@
 import { createCliRenderer, Box, TextRenderable } from "@opentui/core"
-import { bg, fg, StyledText } from "@opentui/core"
-
-const THEME = {
-  bg: '#1a1b26',
-  fg: '#a9b1d6',
-  cursorBg: '#7aa2f7',
-  correct: '#9ece6a',
-  incorrect: '#f7768e',
-  untyped: '#565f89',
-}
-
-const SAMPLE_TEXT = "The quick brown fox jumps over the lazy dog"
+import { THEME } from "./src/config/theme"
+import { SAMPLE_TEXT } from "./src/config/text"
+import { TypingEngine } from "./src/core/TypingEngine"
+import { renderGameText } from "./src/ui/TextRenderer"
 
 const renderer = await createCliRenderer()
 
-let cursorPosition = 0
-const correctChars: boolean[] = new Array(SAMPLE_TEXT.length).fill(false)
+// Initialize Game State
+const engine = new TypingEngine(SAMPLE_TEXT)
 
-function renderText(): StyledText {
-  const chunks: any[] = []
-
-  for (let i = 0; i < SAMPLE_TEXT.length; i++) {
-    const char = SAMPLE_TEXT[i]!
-
-    if (i < cursorPosition) {
-      const color = correctChars[i] ? THEME.correct : THEME.incorrect
-      chunks.push(fg(color)(char))
-    } else if (i === cursorPosition) {
-      chunks.push(bg(THEME.cursorBg)(fg(THEME.bg)(char)))
-    } else {
-      chunks.push(fg(THEME.untyped)(char))
-    }
-  }
-
-  return new StyledText(chunks)
-}
-
-const textRenderable = new TextRenderable(renderer, { content: renderText() })
+const textRenderable = new TextRenderable(renderer, { content: renderGameText(engine) })
 
 function updateDisplay() {
-  textRenderable.content = renderText()
+  textRenderable.content = renderGameText(engine)
   renderer.requestRender()
 }
 
@@ -72,21 +45,18 @@ renderer.keyInput.on("keypress", (keyEvent) => {
     process.exit(0)
   }
 
-  if (cursorPosition >= SAMPLE_TEXT.length) {
-    return
-  }
-
   if (keyEvent.sequence && keyEvent.sequence.length === 1) {
-    const expectedChar = SAMPLE_TEXT[cursorPosition]
-    const typedChar = keyEvent.sequence
+    const processed = engine.processInput(keyEvent.sequence)
 
-    correctChars[cursorPosition] = typedChar === expectedChar
-    cursorPosition++
+    if (processed) {
+      updateDisplay()
 
-    updateDisplay()
-
-    if (cursorPosition === SAMPLE_TEXT.length) {
-      console.log("\n\nComplete!")
+      if (engine.isComplete) {
+        // Allow the UI to update one last time before exiting/printing
+        setTimeout(() => {
+          console.log("\n\nComplete!")
+        }, 10)
+      }
     }
   }
 })
