@@ -19,9 +19,9 @@ Run a single test file:
 bun test path/to/file.test.ts
 ```
 
-Type check (no explicit command, uses tsconfig.json):
+Type check:
 ```bash
-bun run index.ts --check
+bun x tsc --noEmit
 ```
 
 Install dependencies:
@@ -33,10 +33,11 @@ bun install
 
 ```
 ├── index.ts           # Main entry point
+├── index.test.ts      # Tests
 ├── package.json       # Dependencies (@opentui/core)
 ├── tsconfig.json      # TypeScript configuration (strict mode)
 ├── bun.lock           # Lockfile for dependencies
-└── README.md          # Basic project info
+└── AGENTS.md          # This file
 ```
 
 ## Code Style Guidelines
@@ -45,6 +46,7 @@ bun install
 - Use ES modules (`import/export`)
 - Import TypeScript files with `.ts` extension allowed (`allowImportingTsExtensions: true`)
 - Prefer explicit imports over namespace imports
+- Use named imports from `@opentui/core`
 
 ### Types
 - Strict TypeScript enabled (`strict: true`)
@@ -72,24 +74,34 @@ bun install
 - Prefer destructuring for objects/arrays
 
 ### Formatting
-- 2-space indentation (follow Bun conventions)
-- No trailing semicolons (optional, be consistent)
+- 2-space indentation
+- No trailing semicolons (mostly)
 - Max line length: ~100 characters
-- Use single quotes for strings
+- Use double quotes `"` (unless avoiding escaping)
 
 ## @opentui/core Guidelines
 
 This project uses `@opentui/core` for terminal UI development.
 
-Key imports:
+**Key Imports:**
 ```typescript
-import { ... } from "@opentui/core";
+import { createCliRenderer, Box, TextRenderable } from "@opentui/core";
 ```
 
-Testing utilities available:
+**Input Handling:**
+- Use `keypress` event for text input, NOT `key`.
+- Use `keyEvent.sequence` for the actual typed character (handles Shift, etc.).
+- Use `keyEvent.name` for special keys (e.g., "escape", "backspace").
 ```typescript
-import { ... } from "@opentui/core/testing";
+renderer.keyInput.on("keypress", (keyEvent) => {
+  if (keyEvent.name === "escape") { ... }
+  if (keyEvent.sequence) { const char = keyEvent.sequence; ... }
+});
 ```
+
+**Testing:**
+- Utilities available in `@opentui/core/testing`
+- Native Bun testing for logic.
 
 ## Testing
 
@@ -118,7 +130,8 @@ describe("feature", () => {
 ## Pre-commit Checklist
 
 Before completing tasks:
-- [ ] Code runs without TypeScript errors
+- [ ] Code runs without TypeScript errors (`bun x tsc --noEmit`)
 - [ ] Tests pass: `bun test`
 - [ ] Application runs: `bun run index.ts`
 - [ ] No unused imports or variables
+- [ ] AGENTS.md is updated if new patterns/commands are introduced
