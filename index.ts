@@ -12,7 +12,8 @@ let currentState: GameState = 'PLAYING'
 let engine = new TypingEngine(getRandomSample())
 
 const textRenderable = new TextRenderable(renderer, { content: renderGameText(engine) })
-const statusRenderable = new TextRenderable(renderer, { content: "" })
+const statsRenderable = new TextRenderable(renderer, { content: "" })
+const promptRenderable = new TextRenderable(renderer, { content: "" })
 
 function updateDisplay() {
   textRenderable.content = renderGameText(engine)
@@ -20,14 +21,17 @@ function updateDisplay() {
   if (currentState === 'COMPLETE') {
     const wpm = engine.wpm
     const acc = engine.accuracy
-    statusRenderable.content = new StyledText([
-      fg(THEME.fg)("\n\n"),
-      fg(THEME.correct)("Complete! "),
-      fg(THEME.fg)(`WPM: ${wpm} | Acc: ${acc}%`),
-      fg(THEME.fg)("\nPress Enter to continue...")
+    statsRenderable.content = new StyledText([
+      fg(THEME.correct)(`WPM: ${wpm}`),
+      fg(THEME.untyped)(" | "),
+      fg(THEME.correct)(`ACC: ${acc}%`)
+    ])
+    promptRenderable.content = new StyledText([
+      fg(THEME.untyped)("Press Enter to continue...")
     ])
   } else {
-    statusRenderable.content = ""
+    statsRenderable.content = ""
+    promptRenderable.content = ""
   }
   
   renderer.requestRender()
@@ -45,9 +49,14 @@ const app = Box(
   Box(
     {
       padding: 2,
+      flexDirection: "column",
+      alignItems: "center",
     },
     textRenderable,
-    statusRenderable
+    Box({ height: 1 }),
+    statsRenderable,
+    Box({ height: 1 }),
+    promptRenderable
   )
 )
 
