@@ -6,7 +6,6 @@ import { TypingEngine } from "../core/TypingEngine.ts"
 import { getRandomSample } from "../config/text.ts"
 import { renderGameText } from "../ui/TextRenderer.ts"
 import { renderFire } from "../ui/FireComponent.ts"
-import type { CommandMenu } from "../commands/CommandMenu.ts"
 
 type GameState = 'PLAYING' | 'COMPLETE'
 
@@ -19,7 +18,6 @@ export class TypingScreen extends BaseScreen {
   private currentState: GameState = 'PLAYING'
   private engine: TypingEngine
   private fireFrame: number = 0
-  private commandMenu: CommandMenu | null = null
 
   // UI Renderables
   private textRenderable: TextRenderable
@@ -64,10 +62,6 @@ export class TypingScreen extends BaseScreen {
     )
   }
 
-  setCommandMenu(menu: CommandMenu): void {
-    this.commandMenu = menu
-  }
-
   onKeypress(event: KeyEvent): void {
     const key = event.name
 
@@ -81,12 +75,6 @@ export class TypingScreen extends BaseScreen {
     // PLAYING state - handle character input
     if (event.sequence && event.sequence.length === 1) {
       const char = event.sequence
-
-      // Check if command menu should intercept
-      if (this.commandMenu && char === "/" && !this.commandMenu.isActive()) {
-        this.commandMenu.open()
-        return
-      }
 
       const processed = this.engine.processInput(char)
 

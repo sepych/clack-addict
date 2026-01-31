@@ -1,6 +1,6 @@
 import { KeyEvent } from "@opentui/core"
 import { ScreenManager } from "../screens/ScreenManager.ts"
-import type { CommandMenu } from "../commands/CommandMenu.ts"
+import type { EscapeMenu } from "../ui/EscapeMenu.ts"
 
 export interface InputHandler {
   onKeypress(event: KeyEvent): void
@@ -8,37 +8,42 @@ export interface InputHandler {
 
 /**
  * Central input dispatcher
- * Handles global shortcuts, command menu, and delegates to screen
+ * Handles global shortcuts, escape menu, and delegates to screen
  */
 export class InputManager {
-  private commandMenu: CommandMenu | null = null
+  private escapeMenu: EscapeMenu | null = null
 
   constructor(
     private screenManager: ScreenManager,
     private onGlobalExit: () => void
   ) {}
 
-  setCommandMenu(menu: CommandMenu): void {
-    this.commandMenu = menu
+  setEscapeMenu(menu: EscapeMenu): void {
+    this.escapeMenu = menu
   }
 
   /**
-   * Handle a keypress event
-   * Returns true if the key was handled, false otherwise
-   */
+    * Handle a keypress event
+    * Returns true if the key was handled, false otherwise
+    */
   handleKeypress(event: KeyEvent): boolean {
-    // Global exit shortcuts
-    if (
-      event.name === "escape" ||
-      (event.ctrl && event.name === "c")
-    ) {
-      this.onGlobalExit()
+    // Escape menu handling (takes priority)
+    if (this.escapeMenu && this.escapeMenu.isMenuActive()) {
+      this.escapeMenu.onKeypress(event)
       return true
     }
 
-    // Command menu handling
-    if (this.commandMenu && this.commandMenu.isActive()) {
-      this.commandMenu.onKeypress(event)
+    // Escape key opens menu
+    if (event.name === "escape") {
+      if (this.escapeMenu) {
+        this.escapeMenu.open()
+        return true
+      }
+    }
+
+    // Ctrl+C still exits immediately
+    if (event.ctrl && event.name === "c") {
+      this.onGlobalExit()
       return true
     }
 

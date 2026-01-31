@@ -4,10 +4,10 @@ import { TypingStatsDatabase } from "./src/db/Database.ts"
 import { AppContext } from "./src/core/AppContext.ts"
 import { ScreenManager } from "./src/screens/ScreenManager.ts"
 import { TypingScreen } from "./src/screens/TypingScreen.ts"
+import { ThemeScreen } from "./src/screens/ThemeScreen.ts"
+import { StatsScreen } from "./src/screens/StatsScreen.ts"
 import { InputManager } from "./src/input/InputManager.ts"
-import { CommandMenu } from "./src/commands/CommandMenu.ts"
-import { CommandRegistry } from "./src/commands/types.ts"
-import { themeCommand, statsCommand } from "./src/commands/builtins.ts"
+import { EscapeMenu } from "./src/ui/EscapeMenu.ts"
 
 const renderer = await createCliRenderer()
 const db = new TypingStatsDatabase()
@@ -21,18 +21,26 @@ const inputManager = new InputManager(screenManager, () => {
   process.exit(0)
 })
 
-// Set up command registry and menu
-const commandRegistry = new CommandRegistry()
-commandRegistry.register(themeCommand)
-commandRegistry.register(statsCommand)
-
-const commandMenu = new CommandMenu(context, commandRegistry)
-inputManager.setCommandMenu(commandMenu)
-
 // Create and push initial screen
 const typingScreen = new TypingScreen(context)
-typingScreen.setCommandMenu(commandMenu)
 screenManager.push(typingScreen)
+
+// Create escape menu
+const escapeMenu = new EscapeMenu(context)
+escapeMenu.setHandler({
+  onMenuSelect(option) {
+    if (option === "theme") {
+      screenManager.push(new ThemeScreen(context))
+    } else if (option === "stats") {
+      screenManager.push(new StatsScreen(context))
+    } else if (option === "quit") {
+      renderer.destroy()
+      process.exit(0)
+    }
+  }
+})
+
+inputManager.setEscapeMenu(escapeMenu)
 
 // Build the main app UI
 const app = Box(
@@ -58,10 +66,8 @@ const app = Box(
     Box({ height: 1 }),
     typingScreen.getPromptRenderable()
   ),
-  // Command menu overlay
-  commandMenu.render(),
-  Box({ height: 1 }, commandMenu.getInputRenderable()),
-  commandMenu.getMenuRenderable()
+  // Escape menu overlay
+  escapeMenu.getRenderable()
 )
 
 renderer.root.add(app)
