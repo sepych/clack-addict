@@ -4,6 +4,7 @@ import { getRandomSample } from "./src/config/text"
 import { TypingEngine } from "./src/core/TypingEngine"
 import { renderGameText } from "./src/ui/TextRenderer"
 import { renderFire } from "./src/ui/FireComponent"
+import { renderBigText } from "./src/ui/BigText"
 
 const renderer = await createCliRenderer()
 
@@ -25,11 +26,7 @@ function updateDisplay() {
   if (currentState === 'COMPLETE') {
     const wpm = engine.wpm
     const acc = engine.accuracy
-    statsRenderable.content = new StyledText([
-      fg(THEME.correct)(`WPM: ${wpm}`),
-      fg(THEME.untyped)(" | "),
-      fg(THEME.correct)(`ACC: ${acc}%`)
-    ])
+    statsRenderable.content = renderBigText(`WPM: ${wpm}   ACC: ${acc}%`, THEME.correct)
     promptRenderable.content = new StyledText([
       fg(THEME.untyped)("Press Enter to continue...")
     ])
