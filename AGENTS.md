@@ -79,6 +79,10 @@ bun install
 - Max line length: ~100 characters
 - Use double quotes `"` (unless avoiding escaping)
 
+### Theme
+- Defined in `src/config/theme.ts`
+- Contains standard colors and a `streak` palette for dynamic feedback.
+
 ## @opentui/core Guidelines
 
 This project uses `@opentui/core` for terminal UI development.

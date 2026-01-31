@@ -12,7 +12,16 @@ export function renderGameText(engine: TypingEngine): StyledText {
     
     // Highlight cursor position
     if (i === engine.cursorPosition) {
-      chunks.push(bg(THEME.cursorBg)(fg(THEME.bg)(char)))
+      let cursorColor = THEME.cursorBg
+      const streak = engine.currentStreak
+      const wpm = engine.wpm
+
+      if (streak > 50 && wpm > 90) cursorColor = THEME.streak.max
+      else if (streak > 30 && wpm > 70) cursorColor = THEME.streak.high
+      else if (streak > 15 && wpm > 50) cursorColor = THEME.streak.medium
+      else if (streak > 5 && wpm > 30) cursorColor = THEME.streak.low
+
+      chunks.push(bg(cursorColor)(fg(THEME.bg)(char)))
       continue
     }
 

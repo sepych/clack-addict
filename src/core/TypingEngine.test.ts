@@ -47,6 +47,22 @@ describe("TypingEngine", () => {
     expect(engine.accuracy).toBe(75)
   })
 
+  it("should track streak correctly", () => {
+    expect(engine.currentStreak).toBe(0)
+
+    engine.processInput("H") // Correct
+    expect(engine.currentStreak).toBe(1)
+
+    engine.processInput("e") // Correct
+    expect(engine.currentStreak).toBe(2)
+
+    engine.processInput("x") // Incorrect
+    expect(engine.currentStreak).toBe(0)
+
+    engine.processInput("l") // Correct
+    expect(engine.currentStreak).toBe(1)
+  })
+
   it("should complete the text and stop timer", async () => {
     const chars = "Hello".split("")
     

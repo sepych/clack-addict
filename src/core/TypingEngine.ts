@@ -8,6 +8,7 @@ export class TypingEngine {
   public readonly text: string
   private _cursorPosition: number = 0
   private _charStatuses: CharStatus[]
+  private _currentStreak: number = 0
   private _startTime: number | null = null
   private _endTime: number | null = null
 
@@ -18,6 +19,10 @@ export class TypingEngine {
 
   get cursorPosition(): number {
     return this._cursorPosition
+  }
+
+  get currentStreak(): number {
+    return this._currentStreak
   }
 
   get isComplete(): boolean {
@@ -75,8 +80,10 @@ export class TypingEngine {
     
     if (char === expectedChar) {
       this._charStatuses[this._cursorPosition] = CharStatus.Correct
+      this._currentStreak++
     } else {
       this._charStatuses[this._cursorPosition] = CharStatus.Incorrect
+      this._currentStreak = 0
     }
 
     this._cursorPosition++
