@@ -1,4 +1,4 @@
-import { createCliRenderer, Box } from "@opentui/core"
+import { createCliRenderer, Box, BoxRenderable } from "@opentui/core"
 import { THEME } from "./src/config/theme.ts"
 import { TypingStatsDatabase } from "./src/db/Database.ts"
 import { AppContext } from "./src/core/AppContext.ts"
@@ -42,30 +42,65 @@ escapeMenu.setHandler({
 
 inputManager.setEscapeMenu(escapeMenu)
 
-// Build the main app UI
+// Keep track of current screen renderable
+let currentScreenRenderable: BoxRenderable | null = null
+
+function updateScreenDisplay(screenWrapper: BoxRenderable) {
+  // Remove old screen if it exists
+  if (currentScreenRenderable && (currentScreenRenderable as any).id) {
+    try {
+      screenWrapper.remove((currentScreenRenderable as any).id)
+    } catch (e) {
+      // Ignore removal errors
+    }
+  }
+
+  // Add new screen
+  const currentScreen = screenManager.getCurrentScreen()
+  if (currentScreen) {
+    currentScreenRenderable = currentScreen.render()
+    screenWrapper.add(currentScreenRenderable)
+  }
+  renderer.requestRender()
+}
+
+// Create screen wrapper
+const screenWrapper = new BoxRenderable(renderer, {
+  width: "100%",
+  height: "100%",
+})
+
+// Initial screen render
+updateScreenDisplay(screenWrapper)
+
+// Override screenManager methods to update display when screen changes
+const originalPush = screenManager.push.bind(screenManager)
+screenManager.push = function(screen) {
+  originalPush(screen)
+  updateScreenDisplay(screenWrapper)
+}
+
+const originalPop = screenManager.pop.bind(screenManager)
+screenManager.pop = function() {
+  const result = originalPop()
+  updateScreenDisplay(screenWrapper)
+  return result
+}
+
+const originalReplace = screenManager.replace.bind(screenManager)
+screenManager.replace = function(screen) {
+  originalReplace(screen)
+  updateScreenDisplay(screenWrapper)
+}
+
+// Build the main app UI with screen wrapper and escape menu
 const app = Box(
   {
     width: "100%",
     height: "100%",
     backgroundColor: THEME.bg,
-    justifyContent: "center",
-    alignItems: "center",
-    flexDirection: "column",
   },
-  Box({ height: 2 }, typingScreen.getFireRenderable()),
-  Box({ height: 1 }),
-  Box(
-    {
-      padding: 2,
-      flexDirection: "column",
-      alignItems: "center",
-    },
-    typingScreen.getTextRenderable(),
-    Box({ height: 1 }),
-    typingScreen.getResultsContainer(),
-    Box({ height: 1 }),
-    typingScreen.getPromptRenderable()
-  ),
+  screenWrapper,
   // Escape menu overlay
   escapeMenu.getRenderable()
 )

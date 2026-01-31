@@ -1,4 +1,4 @@
-import { BoxRenderable, TextRenderable, StyledText, fg } from "@opentui/core"
+import { Box, BoxRenderable, TextRenderable, StyledText, fg } from "@opentui/core"
 import type { KeyEvent } from "@opentui/core"
 import { BaseScreen } from "./Screen.ts"
 import { AppContext } from "../core/AppContext.ts"
@@ -29,6 +29,10 @@ export class StatsScreen extends BaseScreen {
   onKeypress(event: KeyEvent): void {
     if (event.name === "escape") {
       // Return to previous screen
+      const screenManager = this.context.getScreenManager()
+      if (screenManager) {
+        screenManager.pop()
+      }
       return
     }
   }
@@ -36,7 +40,7 @@ export class StatsScreen extends BaseScreen {
   render(): BoxRenderable {
     const theme = this.context.currentTheme
 
-    return new BoxRenderable(
+    const container = new BoxRenderable(
       this.context.renderer,
       {
         width: "100%",
@@ -49,6 +53,16 @@ export class StatsScreen extends BaseScreen {
         overflow: "hidden",
       }
     )
+
+    container.add(this.titleRenderable)
+    container.add(Box({ height: 1 }))
+    container.add(this.personalBestRenderable)
+    container.add(Box({ height: 1 }))
+    container.add(this.dailyStatsRenderable)
+    container.add(Box({ height: 1 }))
+    container.add(this.helpRenderable)
+
+    return container
   }
 
   private updateDisplay(): void {

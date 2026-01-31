@@ -32,6 +32,10 @@ export class ThemeScreen extends BaseScreen {
   onKeypress(event: KeyEvent): void {
     if (event.name === "escape") {
       // Return to previous screen
+      const screenManager = this.context.getScreenManager()
+      if (screenManager) {
+        screenManager.pop()
+      }
       return
     }
 
@@ -49,8 +53,13 @@ export class ThemeScreen extends BaseScreen {
 
     if (event.name === "return" || event.name === "enter") {
       const selected = this.themes[this.selectedIndex]
-      if (selected) {
+      if (selected !== undefined) {
         this.context.setTheme(selected)
+        // Return to previous screen after selecting
+        const screenManager = this.context.getScreenManager()
+        if (screenManager) {
+          screenManager.pop()
+        }
       }
       return
     }
@@ -59,18 +68,28 @@ export class ThemeScreen extends BaseScreen {
   render(): BoxRenderable {
     const theme = this.context.currentTheme
 
-    return new BoxRenderable(
+    const container = new BoxRenderable(
       this.context.renderer,
       {
         width: "100%",
         height: "100%",
         backgroundColor: theme.bg,
-        justifyContent: "center",
+        justifyContent: "flex-start",
         alignItems: "center",
         flexDirection: "column",
         padding: 2,
       }
     )
+
+    container.add(this.titleRenderable)
+    container.add(Box({ height: 1 }))
+    container.add(this.listRenderable)
+    container.add(Box({ height: 1 }))
+    container.add(this.previewRenderable)
+    container.add(Box({ height: 1 }))
+    container.add(this.helpRenderable)
+
+    return container
   }
 
   private updateDisplay(): void {
