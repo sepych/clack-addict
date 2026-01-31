@@ -1,70 +1,40 @@
-import { createCliRenderer, Box, BoxRenderable, TextRenderable, StyledText, fg } from "@opentui/core"
-import { THEME } from "./src/config/theme"
-import { getRandomSample } from "./src/config/text"
-import { TypingEngine } from "./src/core/TypingEngine"
-import { TypingStatsDatabase } from "./src/db/Database"
-import { renderGameText } from "./src/ui/TextRenderer"
-import { renderFire } from "./src/ui/FireComponent"
+import { createCliRenderer, Box } from "@opentui/core"
+import { THEME } from "./src/config/theme.ts"
+import { TypingStatsDatabase } from "./src/db/Database.ts"
+import { AppContext } from "./src/core/AppContext.ts"
+import { ScreenManager } from "./src/screens/ScreenManager.ts"
+import { TypingScreen } from "./src/screens/TypingScreen.ts"
+import { InputManager } from "./src/input/InputManager.ts"
+import { CommandMenu } from "./src/commands/CommandMenu.ts"
+import { CommandRegistry } from "./src/commands/types.ts"
+import { themeCommand, statsCommand } from "./src/commands/builtins.ts"
 
 const renderer = await createCliRenderer()
 const db = new TypingStatsDatabase()
+const context = new AppContext(renderer, db, THEME)
 
-// Game State
-type GameState = 'PLAYING' | 'COMPLETE'
-let currentState: GameState = 'PLAYING'
-let engine = new TypingEngine(getRandomSample())
-let fireFrame = 0
+const screenManager = new ScreenManager()
+context.setScreenManager(screenManager)
 
-const textRenderable = new TextRenderable(renderer, { content: renderGameText(engine) })
-const statsRenderable = new TextRenderable(renderer, { content: "" })
-const promptRenderable = new TextRenderable(renderer, { content: "" })
-const fireRenderable = new TextRenderable(renderer, { content: renderFire(0) })
-
-const resultsContainer = new BoxRenderable(renderer, {
-  flexDirection: "row",
-  visible: false,
+const inputManager = new InputManager(screenManager, () => {
+  renderer.destroy()
+  process.exit(0)
 })
 
-resultsContainer.add(
-  Box({
-    width: 1,
-    backgroundColor: THEME.cursorBg,
-  })
-)
+// Set up command registry and menu
+const commandRegistry = new CommandRegistry()
+commandRegistry.register(themeCommand)
+commandRegistry.register(statsCommand)
 
-resultsContainer.add(
-  Box(
-    {
-      padding: 1,
-      backgroundColor: THEME.resultBg,
-    },
-    statsRenderable
-  )
-)
+const commandMenu = new CommandMenu(context, commandRegistry)
+inputManager.setCommandMenu(commandMenu)
 
-function updateDisplay() {
-  textRenderable.content = renderGameText(engine)
-  fireRenderable.content = renderFire(fireFrame, Math.floor(engine.currentStreak / 10))
+// Create and push initial screen
+const typingScreen = new TypingScreen(context)
+typingScreen.setCommandMenu(commandMenu)
+screenManager.push(typingScreen)
 
-  if (currentState === 'COMPLETE') {
-    resultsContainer.visible = true
-    const wpm = engine.wpm
-    const acc = engine.accuracy
-    statsRenderable.content = new StyledText([
-      fg(THEME.fg)(`WPM: ${wpm}   ACC: ${acc}%`)
-    ])
-    promptRenderable.content = new StyledText([
-      fg(THEME.untyped)("Press Enter to continue...")
-    ])
-  } else {
-    resultsContainer.visible = false
-    statsRenderable.content = ""
-    promptRenderable.content = ""
-  }
-
-  renderer.requestRender()
-}
-
+// Build the main app UI
 const app = Box(
   {
     width: "100%",
@@ -74,7 +44,7 @@ const app = Box(
     alignItems: "center",
     flexDirection: "column",
   },
-  Box({ height: 2 }, fireRenderable),
+  Box({ height: 2 }, typingScreen.getFireRenderable()),
   Box({ height: 1 }),
   Box(
     {
@@ -82,57 +52,24 @@ const app = Box(
       flexDirection: "column",
       alignItems: "center",
     },
-    textRenderable,
+    typingScreen.getTextRenderable(),
     Box({ height: 1 }),
-    // Container for results
-    resultsContainer,
+    typingScreen.getResultsContainer(),
     Box({ height: 1 }),
-    promptRenderable
-  )
+    typingScreen.getPromptRenderable()
+  ),
+  // Command menu overlay
+  commandMenu.render(),
+  Box({ height: 1 }, commandMenu.getInputRenderable()),
+  commandMenu.getMenuRenderable()
 )
 
 renderer.root.add(app)
 
+// Set up input handling
 renderer.keyInput.on("keypress", (keyEvent) => {
-  const key = keyEvent.name
-
-  if (
-    key === "escape" ||
-    (keyEvent.ctrl && key === "c")
-  ) {
-    renderer.destroy()
-    process.exit(0)
-  }
-
-  if (currentState === 'COMPLETE') {
-    if (key === 'return' || key === 'enter') {
-      // Reset game
-      engine = new TypingEngine(getRandomSample())
-      currentState = 'PLAYING'
-      updateDisplay()
-    }
-    return
-  }
-
-  // PLAYING state
-  if (keyEvent.sequence && keyEvent.sequence.length === 1) {
-    const processed = engine.processInput(keyEvent.sequence)
-
-    if (processed) {
-      if (engine.isComplete) {
-        currentState = 'COMPLETE'
-        db.saveSession(engine.wpm, engine.accuracy)
-      }
-      updateDisplay()
-    }
-  }
+  inputManager.handleKeypress(keyEvent)
 })
 
 renderer.start()
 
-// Animation Loop
-setInterval(() => {
-  fireFrame++
-  fireRenderable.content = renderFire(fireFrame, Math.floor(engine.currentStreak / 10))
-  renderer.requestRender()
-}, 150)
