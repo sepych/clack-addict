@@ -2,10 +2,12 @@ import { createCliRenderer, Box, BoxRenderable, TextRenderable, StyledText, fg }
 import { THEME } from "./src/config/theme"
 import { getRandomSample } from "./src/config/text"
 import { TypingEngine } from "./src/core/TypingEngine"
+import { TypingStatsDatabase } from "./src/db/Database"
 import { renderGameText } from "./src/ui/TextRenderer"
 import { renderFire } from "./src/ui/FireComponent"
 
 const renderer = await createCliRenderer()
+const db = new TypingStatsDatabase()
 
 // Game State
 type GameState = 'PLAYING' | 'COMPLETE'
@@ -119,6 +121,7 @@ renderer.keyInput.on("keypress", (keyEvent) => {
     if (processed) {
       if (engine.isComplete) {
         currentState = 'COMPLETE'
+        db.saveSession(engine.wpm, engine.accuracy)
       }
       updateDisplay()
     }
