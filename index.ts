@@ -20,7 +20,7 @@ const fireRenderable = new TextRenderable(renderer, { content: renderFire(0) })
 
 function updateDisplay() {
   textRenderable.content = renderGameText(engine)
-  fireRenderable.content = renderFire(fireFrame)
+  fireRenderable.content = renderFire(fireFrame, Math.floor(engine.currentStreak / 10))
   
   if (currentState === 'COMPLETE') {
     const wpm = engine.wpm
@@ -50,6 +50,8 @@ const app = Box(
     alignItems: "center",
     flexDirection: "column",
   },
+  Box({ height: 2 }, fireRenderable),
+  Box({ height: 1 }),
   Box(
     {
       padding: 2,
@@ -61,9 +63,7 @@ const app = Box(
     statsRenderable,
     Box({ height: 1 }),
     promptRenderable
-  ),
-  Box({ height: 1 }),
-  fireRenderable
+  )
 )
 
 renderer.root.add(app)
@@ -107,6 +107,6 @@ renderer.start()
 // Animation Loop
 setInterval(() => {
   fireFrame++
-  fireRenderable.content = renderFire(fireFrame)
+  fireRenderable.content = renderFire(fireFrame, Math.floor(engine.currentStreak / 10))
   renderer.requestRender()
 }, 150)

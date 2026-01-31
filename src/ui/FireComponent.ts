@@ -1,28 +1,31 @@
 import { StyledText, fg, bg } from "@opentui/core"
 import { THEME } from "../config/theme"
 
-// --- DESIGNER CONFIGURATION START ---
-
-// 1. Color Palette (Edit hex codes here)
-const FIRE_PALETTE = {
-  core:    '#FFD700', // Yellow
-  body:    '#FF8C00', // Orange
-  tips:    '#FF4500', // Red
-  base:    '#560000', // Dark Red
+interface FirePalette {
+  core: string
+  body: string
+  tips: string
+  base: string
 }
 
-// 2. Pixel Mapping (Map characters to Palette colors)
-const PIXEL_MAP: Record<string, string> = {
-  'Y': FIRE_PALETTE.core,
-  'O': FIRE_PALETTE.body,
-  'R': FIRE_PALETTE.tips,
-  'D': FIRE_PALETTE.base,
-  ' ': '' // Transparent
+// Map streak levels to palettes (matching theme.ts)
+const PALETTES: Record<number, FirePalette> = {
+  1: { core: '#e0ffff', body: '#2ac3de', tips: '#0077be', base: '#004050' }, // Cyan
+  2: { core: '#f0fff0', body: '#9ece6a', tips: '#228b22', base: '#004000' }, // Green
+  3: { core: '#ffffe0', body: '#e0af68', tips: '#daa520', base: '#503000' }, // Yellow
+  4: { core: '#ffff00', body: '#ff9e64', tips: '#ff4500', base: '#560000' }, // Orange
+  5: { core: '#ffdab9', body: '#f7768e', tips: '#dc143c', base: '#400000' }, // Red
+  6: { core: '#e6e6fa', body: '#bb9af7', tips: '#9370db', base: '#200040' }, // Purple
+  7: { core: '#ffe4e1', body: '#ff007c', tips: '#c71585', base: '#300030' }, // Magenta
 }
 
-// 3. Animation Frames
-// '▀' represents 2 vertical pixels.
-// The strings below are the "texture".
+const CHAR_TO_ROLE: Record<string, keyof FirePalette> = {
+  'Y': 'core',
+  'O': 'body',
+  'R': 'tips',
+  'D': 'base'
+}
+
 const FRAMES = [
   // Frame 1
   [
@@ -54,15 +57,23 @@ const FRAMES = [
   ]
 ]
 
-// --- DESIGNER CONFIGURATION END ---
-
 /**
  * Renders a frame of the fire animation.
  * Uses double vertical resolution: 2 text rows = 1 block row.
+ * @param frameIndex The animation frame index
+ * @param level The fire level (0 = hidden, 1-7 = intensity)
  */
-export function renderFire(frameIndex: number): StyledText {
+export function renderFire(frameIndex: number, level: number = 0): StyledText {
+  if (level < 1) {
+    return new StyledText([])
+  }
+
+  // Clamp level to max 7
+  const safeLevel = Math.min(Math.max(level, 1), 7)
+  const palette = PALETTES[safeLevel]
   const rawFrame = FRAMES[frameIndex % FRAMES.length]
-  if (!rawFrame) return new StyledText([])
+  
+  if (!palette || !rawFrame) return new StyledText([])
 
   const chunks: any[] = []
 
@@ -78,8 +89,11 @@ export function renderFire(frameIndex: number): StyledText {
       const topChar = topRow[x] || ' '
       const botChar = botRow[x] || ' '
 
-      const topColor = PIXEL_MAP[topChar]
-      const botColor = PIXEL_MAP[botChar]
+      const topRole = CHAR_TO_ROLE[topChar]
+      const botRole = CHAR_TO_ROLE[botChar]
+
+      const topColor = topRole ? palette[topRole] : undefined
+      const botColor = botRole ? palette[botRole] : undefined
 
       // Rendering Logic:
       // We use the Upper Half Block '▀'.

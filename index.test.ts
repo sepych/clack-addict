@@ -11,7 +11,7 @@ describe("App Configuration", () => {
   
   it("should have text samples", () => {
     expect(TEXT_SAMPLES.length).toBeGreaterThan(0)
-    expect(TEXT_SAMPLES).toContain("The quick brown fox jumps over the lazy dog")
+    expect(TEXT_SAMPLES).toContain("the quick brown fox jumps over the lazy dog")
   })
 
   it("should return a random sample", () => {
