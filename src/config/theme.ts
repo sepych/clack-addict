@@ -1,6 +1,7 @@
 export const THEME = {
   bg: '#1a1b26',
   fg: '#a9b1d6',
+  resultBg: '#292e42',
   cursorBg: '#7aa2f7',
   correct: '#9ece6a',
   incorrect: '#f7768e',

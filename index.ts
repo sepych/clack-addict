@@ -4,7 +4,6 @@ import { getRandomSample } from "./src/config/text"
 import { TypingEngine } from "./src/core/TypingEngine"
 import { renderGameText } from "./src/ui/TextRenderer"
 import { renderFire } from "./src/ui/FireComponent"
-import { renderBigText } from "./src/ui/BigText"
 
 const renderer = await createCliRenderer()
 
@@ -22,11 +21,13 @@ const fireRenderable = new TextRenderable(renderer, { content: renderFire(0) })
 function updateDisplay() {
   textRenderable.content = renderGameText(engine)
   fireRenderable.content = renderFire(fireFrame, Math.floor(engine.currentStreak / 10))
-  
+
   if (currentState === 'COMPLETE') {
     const wpm = engine.wpm
     const acc = engine.accuracy
-    statsRenderable.content = renderBigText(`WPM: ${wpm}   ACC: ${acc}%`, THEME.correct)
+    statsRenderable.content = new StyledText([
+      fg(THEME.correct)(`WPM: ${wpm}   ACC: ${acc}%`)
+    ])
     promptRenderable.content = new StyledText([
       fg(THEME.untyped)("Press Enter to continue...")
     ])
@@ -34,7 +35,7 @@ function updateDisplay() {
     statsRenderable.content = ""
     promptRenderable.content = ""
   }
-  
+
   renderer.requestRender()
 }
 
@@ -57,7 +58,25 @@ const app = Box(
     },
     textRenderable,
     Box({ height: 1 }),
-    statsRenderable,
+    // Container for results
+    Box(
+      {
+        flexDirection: "row",
+      },
+      // Left Border Box
+      Box({
+        width: 1,
+        backgroundColor: THEME.cursorBg,
+      }),
+      // Content Box
+      Box(
+        {
+          padding: 1,
+          backgroundColor: THEME.resultBg,
+        },
+        statsRenderable
+      )
+    ),
     Box({ height: 1 }),
     promptRenderable
   )
