@@ -1,57 +1,72 @@
 import { StyledText, fg, bg } from "@opentui/core"
 import { THEME } from "../config/theme"
 
-// Double Vertical Resolution Fire
-// We map 2 vertical pixels to 1 character height using '▀' (Upper Half Block)
-// Top pixel = Foreground Color
-// Bottom pixel = Background Color
+// --- DESIGNER CONFIGURATION START ---
 
-const PALETTE: Record<string, string> = {
-  'Y': THEME.streak.lvl3, // Yellow (Core)
-  'O': THEME.streak.lvl4, // Orange (Body)
-  'R': THEME.streak.lvl5, // Red (Tips)
-  'D': '#560000',         // Dark Red (Base/Shadow) - custom hex for depth
-  ' ': ''                 // Transparent
+// 1. Color Palette (Edit hex codes here)
+const FIRE_PALETTE = {
+  core:    '#FFD700', // Yellow
+  body:    '#FF8C00', // Orange
+  tips:    '#FF4500', // Red
+  base:    '#560000', // Dark Red
 }
 
-const HI_RES_FRAMES = [
+// 2. Pixel Mapping (Map characters to Palette colors)
+const PIXEL_MAP: Record<string, string> = {
+  'Y': FIRE_PALETTE.core,
+  'O': FIRE_PALETTE.body,
+  'R': FIRE_PALETTE.tips,
+  'D': FIRE_PALETTE.base,
+  ' ': '' // Transparent
+}
+
+// 3. Animation Frames
+// '▀' represents 2 vertical pixels.
+// The strings below are the "texture".
+const FRAMES = [
   // Frame 1
   [
-    "    R     ",
-    "  R ROR   ",
-    "  RO OYR  ",
-    "  OYOR YR ",
+    " D  ",
+    " R R",
+    "RYYO",
+    "OYYY",
   ],
   // Frame 2
   [
-    "          ",
-    "  R R O   ",
-    "  RO OYR  ",
-    "  RYOR YR ",
+    " R  ",
+    "  R ",
+    "ROYO",
+    "OYYY",
   ],
   // Frame 3
   [
-    "     O    ",
-    "   Y O    ",
-    "  OO OYR  ",
-    "  RYOR YR ",
+    "  D ",
+    " RY ",
+    "RYYR",
+    "OYYY",
   ],
   // Frame 4
   [
-    "    O  O  ",
-    "    ROR   ",
-    "  RO OYR  ",
-    "  OYO OYR ",
+    "    ",
+    "DR R",
+    " OYO",
+    "OYYO",
   ]
 ]
 
+// --- DESIGNER CONFIGURATION END ---
+
+/**
+ * Renders a frame of the fire animation.
+ * Uses double vertical resolution: 2 text rows = 1 block row.
+ */
 export function renderFire(frameIndex: number): StyledText {
-  const rawFrame = HI_RES_FRAMES[frameIndex % HI_RES_FRAMES.length]
+  const rawFrame = FRAMES[frameIndex % FRAMES.length]
   if (!rawFrame) return new StyledText([])
 
   const chunks: any[] = []
 
-  // Process 2 rows at a time
+  // Process 2 rows at a time to create 1 line of blocks
   for (let y = 0; y < rawFrame.length; y += 2) {
     const topRow = rawFrame[y] || ""
     const botRow = rawFrame[y + 1] || ""
@@ -60,25 +75,28 @@ export function renderFire(frameIndex: number): StyledText {
     const width = Math.max(topRow.length, botRow.length)
 
     for (let x = 0; x < width; x++) {
-      const topPixel = topRow[x] || ' '
-      const botPixel = botRow[x] || ' '
+      const topChar = topRow[x] || ' '
+      const botChar = botRow[x] || ' '
 
-      const topColor = PALETTE[topPixel]
-      const botColor = PALETTE[botPixel]
+      const topColor = PIXEL_MAP[topChar]
+      const botColor = PIXEL_MAP[botChar]
 
-      // Logic for combining pixels
+      // Rendering Logic:
+      // We use the Upper Half Block '▀'.
+      // The Foreground color colors the top half.
+      // The Background color colors the bottom half.
+
       if (!topColor && !botColor) {
         // Both transparent
         chunks.push(fg(THEME.bg)(" "))
       } else if (topColor && !botColor) {
-        // Top has color, Bottom is transparent -> Upper block
+        // Top colored, Bottom transparent
         chunks.push(fg(topColor)("▀"))
       } else if (!topColor && botColor) {
-        // Top transparent, Bottom has color -> Lower block
+        // Top transparent, Bottom colored -> Use Lower Block '▄'
         chunks.push(fg(botColor)("▄"))
       } else if (topColor && botColor) {
-        // Both colored -> Upper block with Background color set to bottom pixel
-        // Note: We use '▀' so fg is Top, bg is Bottom
+        // Both colored -> Top is FG, Bottom is BG
         chunks.push(bg(botColor)(fg(topColor)("▀")))
       }
     }
