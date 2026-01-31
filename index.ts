@@ -3,6 +3,7 @@ import { THEME } from "./src/config/theme"
 import { getRandomSample } from "./src/config/text"
 import { TypingEngine } from "./src/core/TypingEngine"
 import { renderGameText } from "./src/ui/TextRenderer"
+import { renderFire } from "./src/ui/FireComponent"
 
 const renderer = await createCliRenderer()
 
@@ -10,13 +11,16 @@ const renderer = await createCliRenderer()
 type GameState = 'PLAYING' | 'COMPLETE'
 let currentState: GameState = 'PLAYING'
 let engine = new TypingEngine(getRandomSample())
+let fireFrame = 0
 
 const textRenderable = new TextRenderable(renderer, { content: renderGameText(engine) })
 const statsRenderable = new TextRenderable(renderer, { content: "" })
 const promptRenderable = new TextRenderable(renderer, { content: "" })
+const fireRenderable = new TextRenderable(renderer, { content: renderFire(0) })
 
 function updateDisplay() {
   textRenderable.content = renderGameText(engine)
+  fireRenderable.content = renderFire(fireFrame)
   
   if (currentState === 'COMPLETE') {
     const wpm = engine.wpm
@@ -57,7 +61,9 @@ const app = Box(
     statsRenderable,
     Box({ height: 1 }),
     promptRenderable
-  )
+  ),
+  Box({ height: 1 }),
+  fireRenderable
 )
 
 renderer.root.add(app)
@@ -97,3 +103,10 @@ renderer.keyInput.on("keypress", (keyEvent) => {
 })
 
 renderer.start()
+
+// Animation Loop
+setInterval(() => {
+  fireFrame++
+  fireRenderable.content = renderFire(fireFrame)
+  renderer.requestRender()
+}, 150)
