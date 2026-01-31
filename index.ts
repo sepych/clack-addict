@@ -1,4 +1,4 @@
-import { createCliRenderer, Box, TextRenderable, StyledText, fg } from "@opentui/core"
+import { createCliRenderer, Box, BoxRenderable, TextRenderable, StyledText, fg } from "@opentui/core"
 import { THEME } from "./src/config/theme"
 import { getRandomSample } from "./src/config/text"
 import { TypingEngine } from "./src/core/TypingEngine"
@@ -18,20 +18,44 @@ const statsRenderable = new TextRenderable(renderer, { content: "" })
 const promptRenderable = new TextRenderable(renderer, { content: "" })
 const fireRenderable = new TextRenderable(renderer, { content: renderFire(0) })
 
+const resultsContainer = new BoxRenderable(renderer, {
+  flexDirection: "row",
+  visible: false,
+})
+
+resultsContainer.add(
+  Box({
+    width: 1,
+    backgroundColor: THEME.cursorBg,
+  })
+)
+
+resultsContainer.add(
+  Box(
+    {
+      padding: 1,
+      backgroundColor: THEME.resultBg,
+    },
+    statsRenderable
+  )
+)
+
 function updateDisplay() {
   textRenderable.content = renderGameText(engine)
   fireRenderable.content = renderFire(fireFrame, Math.floor(engine.currentStreak / 10))
 
   if (currentState === 'COMPLETE') {
+    resultsContainer.visible = true
     const wpm = engine.wpm
     const acc = engine.accuracy
     statsRenderable.content = new StyledText([
-      fg(THEME.correct)(`WPM: ${wpm}   ACC: ${acc}%`)
+      fg(THEME.fg)(`WPM: ${wpm}   ACC: ${acc}%`)
     ])
     promptRenderable.content = new StyledText([
       fg(THEME.untyped)("Press Enter to continue...")
     ])
   } else {
+    resultsContainer.visible = false
     statsRenderable.content = ""
     promptRenderable.content = ""
   }
@@ -59,24 +83,7 @@ const app = Box(
     textRenderable,
     Box({ height: 1 }),
     // Container for results
-    Box(
-      {
-        flexDirection: "row",
-      },
-      // Left Border Box
-      Box({
-        width: 1,
-        backgroundColor: THEME.cursorBg,
-      }),
-      // Content Box
-      Box(
-        {
-          padding: 1,
-          backgroundColor: THEME.resultBg,
-        },
-        statsRenderable
-      )
-    ),
+    resultsContainer,
     Box({ height: 1 }),
     promptRenderable
   )
