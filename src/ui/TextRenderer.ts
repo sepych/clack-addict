@@ -16,10 +16,13 @@ export function renderGameText(engine: TypingEngine): StyledText {
       const streak = engine.currentStreak
       const wpm = engine.wpm
 
-      if (streak > 50 && wpm > 90) cursorColor = THEME.streak.max
-      else if (streak > 30 && wpm > 70) cursorColor = THEME.streak.high
-      else if (streak > 15 && wpm > 50) cursorColor = THEME.streak.medium
-      else if (streak > 5 && wpm > 30) cursorColor = THEME.streak.low
+      if (streak > 60 && wpm > 100) cursorColor = THEME.streak.lvl7
+      else if (streak > 45 && wpm > 80) cursorColor = THEME.streak.lvl6
+      else if (streak > 30 && wpm > 60) cursorColor = THEME.streak.lvl5
+      else if (streak > 18 && wpm > 45) cursorColor = THEME.streak.lvl4
+      else if (streak > 10 && wpm > 30) cursorColor = THEME.streak.lvl3
+      else if (streak > 5 && wpm > 15) cursorColor = THEME.streak.lvl2
+      else if (streak > 2 && wpm > 5) cursorColor = THEME.streak.lvl1
 
       chunks.push(bg(cursorColor)(fg(THEME.bg)(char)))
       continue
