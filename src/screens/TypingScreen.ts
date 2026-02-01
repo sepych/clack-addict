@@ -105,10 +105,10 @@ export class TypingScreen extends BaseScreen {
       }
     )
 
-    container.add(this.fireRenderable)
-    container.add(this.textRenderable)
-    container.add(this.resultsContainer)
-    container.add(this.promptRenderable)
+    container.add(Box({ marginBottom: 1 }, this.fireRenderable))
+    container.add(Box({ marginBottom: 1 }, this.textRenderable))
+    container.add(Box({ marginBottom: 1 }, this.resultsContainer))
+    container.add(Box({ marginBottom: 1 }, this.promptRenderable))
 
     return container
   }
@@ -117,7 +117,7 @@ export class TypingScreen extends BaseScreen {
     this.updateDisplay()
     // Mark screen as active
     this._isActive = true
-    
+
     // Start animation loop
     this._animationInterval = setInterval(() => {
       // Double-check if screen is still active before updating
