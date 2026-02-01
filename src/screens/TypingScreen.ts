@@ -31,6 +31,8 @@ export class TypingScreen extends BaseScreen {
   private liveWpmRenderable: TextRenderable
   private topRowContainer: BoxRenderable
   private resultsContainer: BoxRenderable
+  private resultsBar: BoxRenderable
+  private resultsStatsBox: BoxRenderable
 
   constructor(context: AppContext) {
     super(context)
@@ -59,27 +61,24 @@ export class TypingScreen extends BaseScreen {
     this.topRowContainer.add(this.fireRenderable)
     this.topRowContainer.add(this.liveWpmRenderable)
 
+    this.resultsBar = new BoxRenderable(context.renderer, {
+      width: 1,
+      backgroundColor: context.currentTheme.cursorBg,
+    })
+
+    this.resultsStatsBox = new BoxRenderable(context.renderer, {
+      padding: 1,
+      backgroundColor: context.currentTheme.resultBg,
+    })
+    this.resultsStatsBox.add(this.statsRenderable)
+
     this.resultsContainer = new BoxRenderable(context.renderer, {
       flexDirection: "row",
       visible: false,
     })
 
-    this.resultsContainer.add(
-      Box({
-        width: 1,
-        backgroundColor: context.currentTheme.cursorBg,
-      })
-    )
-
-    this.resultsContainer.add(
-      Box(
-        {
-          padding: 1,
-          backgroundColor: context.currentTheme.resultBg,
-        },
-        this.statsRenderable
-      )
-    )
+    this.resultsContainer.add(this.resultsBar)
+    this.resultsContainer.add(this.resultsStatsBox)
   }
 
   onKeypress(event: KeyEvent): void {
@@ -191,6 +190,11 @@ export class TypingScreen extends BaseScreen {
     if (this.currentState === 'COMPLETE') {
       this.topRowContainer.visible = false
       this.resultsContainer.visible = true
+      
+      // Update result box colors for current theme
+      this.resultsBar.backgroundColor = theme.cursorBg
+      this.resultsStatsBox.backgroundColor = theme.resultBg
+
       const wpm = this.engine.wpm
       const acc = this.engine.accuracy
       this.statsRenderable.content = new StyledText([

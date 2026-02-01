@@ -85,7 +85,7 @@ export const THEME_ONE_LIGHT: Theme = {
   bg: '#fafafa',
   fg: '#383a42',
   resultBg: '#f0f0f1',
-  cursorBg: '#526fff',
+  cursorBg: '#c2ccf4',
   correct: '#50a14f',
   incorrect: '#e45649',
   untyped: '#a0a1a7',
