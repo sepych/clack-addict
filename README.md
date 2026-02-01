@@ -2,7 +2,7 @@
 
 An unhinged, terminal-based typing speed test built for speed demons and keyboard enthusiasts.
 
-![ClackAddict Splash Screen](https://via.placeholder.com/800x400.png?text=CLACKADDICT+SPLASH+SCREEN) *Terminal aesthetics for the truly obsessed.*
+*Terminal aesthetics for the truly obsessed.*
 
 ## 🔥 Features
 
