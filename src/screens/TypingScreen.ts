@@ -151,7 +151,7 @@ export class TypingScreen extends BaseScreen {
           )
           const recentWpm = this.engine.recentWpm
           this.liveWpmRenderable.content = new StyledText([
-            fg(this.context.currentTheme.fg)(recentWpm === null ? "--" : String(recentWpm))
+            fg(this.getStreakColor())(recentWpm === null ? "--" : String(recentWpm))
           ])
           this.context.renderer.requestRender()
         } catch (_e) {
@@ -207,7 +207,7 @@ export class TypingScreen extends BaseScreen {
       this.topRowContainer.visible = true
       const recentWpm = this.engine.recentWpm
       this.liveWpmRenderable.content = new StyledText([
-        fg(theme.fg)(recentWpm === null ? "--" : String(recentWpm))
+        fg(this.getStreakColor())(recentWpm === null ? "--" : String(recentWpm))
       ])
       this.resultsContainer.visible = false
       this.statsRenderable.content = ""
@@ -215,6 +215,22 @@ export class TypingScreen extends BaseScreen {
     }
 
     this.context.renderer.requestRender()
+  }
+
+  private getStreakColor(): string {
+    const theme = this.context.currentTheme
+    const level = Math.floor(this.engine.currentStreak / 10)
+
+    switch (level) {
+      case 0: return theme.fg
+      case 1: return theme.streak.lvl1
+      case 2: return theme.streak.lvl2
+      case 3: return theme.streak.lvl3
+      case 4: return theme.streak.lvl4
+      case 5: return theme.streak.lvl5
+      case 6: return theme.streak.lvl6
+      default: return theme.streak.lvl7
+    }
   }
 
   // Public accessors for UI building
