@@ -1,3 +1,10 @@
+const VERSION = process.env["BUILD_VERSION"] ?? "dev"
+
+if (process.argv.includes("--version") || process.argv.includes("-v")) {
+  console.log(VERSION)
+  process.exit(0)
+}
+
 import { createCliRenderer, Box, BoxRenderable } from "@opentui/core"
 import { THEME } from "./src/config/theme.ts"
 import { TypingStatsDatabase } from "./src/db/Database.ts"

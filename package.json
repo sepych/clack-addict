@@ -1,11 +1,13 @@
 {
   "name": "clack-addict",
+  "version": "0.1.0",
   "module": "index.ts",
   "type": "module",
   "private": true,
   "scripts": {
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "build": "bun build --compile --minify --define \"process.env.BUILD_VERSION='\"$(cat package.json | jq -r .version)\"'\" ./index.ts --outfile clack-addict"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
