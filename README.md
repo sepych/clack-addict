@@ -12,22 +12,18 @@ An unhinged, terminal-based typing speed test built for speed demons and keyboar
 - **Stats Tracking**: Monitor your WPM, accuracy, and daily averages.
 - **Big Text**: Glorious ASCII art for that retro feel.
 
-## 🚀 Getting Started
+## 🚀 Installation
 
-### Prerequisites
-
-You need [Bun](https://bun.sh) installed on your system.
-
-### Installation
+Install **ClackAddict** with a single command:
 
 ```bash
-bun install
+curl -fsSL https://raw.githubusercontent.com/sepych/clack-addict/main/install | bash
 ```
 
-### Running the Game
+Once installed, simply run:
 
 ```bash
-bun run index.ts
+clack-addict
 ```
 
 ## 🎮 How to Play
@@ -49,6 +45,11 @@ bun test
 To lint:
 ```bash
 bun run lint
+```
+
+To build a standalone binary:
+```bash
+bun run build
 ```
 
 ## 📜 License
