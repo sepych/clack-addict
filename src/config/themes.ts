@@ -100,12 +100,54 @@ export const THEME_ONE_LIGHT: Theme = {
   }
 }
 
+export const THEME_SYNTHWAVE_84: Theme = {
+  name: 'SynthWave \'84',
+  bg: '#262335',
+  fg: '#ffffff',
+  resultBg: '#34294f',
+  cursorBg: '#ff7edb',
+  correct: '#72f1b8',
+  incorrect: '#fe4450',
+  untyped: '#614d85',
+  streak: {
+    lvl1: '#03edf9',   // Electric Cyan
+    lvl2: '#72f1b8',   // Neon Green
+    lvl3: '#fede5d',   // Neon Yellow
+    lvl4: '#f97e72',   // Neon Orange
+    lvl5: '#fe4450',   // Neon Red
+    lvl6: '#ff7edb',   // Neon Pink
+    lvl7: '#b002ff',   // Neon Purple
+  }
+}
+
+export const THEME_HALFLIFE: Theme = {
+  name: 'Half-Life',
+  bg: '#181818',
+  fg: '#f58120',
+  resultBg: '#2b2b2b',
+  cursorBg: '#f58120',
+  correct: '#f58120',
+  incorrect: '#ff4040',
+  untyped: '#555555',
+  streak: {
+    lvl1: '#bd5d00',
+    lvl2: '#d96b00',
+    lvl3: '#f58120',
+    lvl4: '#ff9d00',
+    lvl5: '#ffb000',
+    lvl6: '#ffc300',
+    lvl7: '#ffd600',
+  }
+}
+
 export const ALL_THEMES: Record<string, Theme> = {
   tokyo_night: THEME_TOKYO_NIGHT,
   dracula: THEME_DRACULA,
   monokai: THEME_MONOKAI,
   nord: THEME_NORD,
   one_light: THEME_ONE_LIGHT,
+  synthwave_84: THEME_SYNTHWAVE_84,
+  halflife: THEME_HALFLIFE,
 }
 
 // Legacy export for backward compatibility
