@@ -7,6 +7,8 @@ import { getRandomSample } from "../config/text.ts"
 import { renderGameText } from "../ui/TextRenderer.ts"
 import { renderFire } from "../ui/FireComponent.ts"
 
+const TEXT_WIDTH = 60
+
 type GameState = 'PLAYING' | 'COMPLETE'
 
 /**
@@ -26,6 +28,8 @@ export class TypingScreen extends BaseScreen {
   private statsRenderable: TextRenderable
   private promptRenderable: TextRenderable
   private fireRenderable: TextRenderable
+  private liveWpmRenderable: TextRenderable
+  private topRowContainer: BoxRenderable
   private resultsContainer: BoxRenderable
 
   constructor(context: AppContext) {
@@ -33,13 +37,28 @@ export class TypingScreen extends BaseScreen {
     this.engine = new TypingEngine(getRandomSample())
 
     this.textRenderable = new TextRenderable(context.renderer, {
-      content: renderGameText(this.engine)
+      content: renderGameText(this.engine),
+      wrapMode: "word",
+      maxWidth: TEXT_WIDTH,
     })
     this.statsRenderable = new TextRenderable(context.renderer, { content: "" })
     this.promptRenderable = new TextRenderable(context.renderer, { content: "" })
     this.fireRenderable = new TextRenderable(context.renderer, {
       content: renderFire(0)
     })
+    this.liveWpmRenderable = new TextRenderable(context.renderer, {
+      content: new StyledText([fg(context.currentTheme.fg)("0")]),
+      width: '100%',
+      alignItems: 'center',
+      justifyContent: 'center'
+    })
+
+    this.topRowContainer = new BoxRenderable(context.renderer, {
+      flexDirection: "column",
+      justifyContent: "center",
+    })
+    this.topRowContainer.add(this.fireRenderable)
+    this.topRowContainer.add(this.liveWpmRenderable)
 
     this.resultsContainer = new BoxRenderable(context.renderer, {
       flexDirection: "row",
@@ -109,7 +128,7 @@ export class TypingScreen extends BaseScreen {
       }
     )
 
-    container.add(Box({ marginBottom: 1 }, this.fireRenderable))
+    container.add(Box({ marginBottom: 1 }, this.topRowContainer))
     container.add(Box({ marginBottom: 1 }, this.textRenderable))
     container.add(Box({ marginBottom: 1 }, this.resultsContainer))
     container.add(Box({ marginBottom: 1 }, this.promptRenderable))
@@ -132,6 +151,10 @@ export class TypingScreen extends BaseScreen {
             this.fireFrame,
             Math.floor(this.engine.currentStreak / 10)
           )
+          const recentWpm = this.engine.recentWpm
+          this.liveWpmRenderable.content = new StyledText([
+            fg(this.context.currentTheme.fg)(recentWpm === null ? "--" : String(recentWpm))
+          ])
           this.context.renderer.requestRender()
         } catch (_e) {
           // Silently ignore errors if renderable is destroyed
@@ -167,6 +190,7 @@ export class TypingScreen extends BaseScreen {
     )
 
     if (this.currentState === 'COMPLETE') {
+      this.topRowContainer.visible = false
       this.resultsContainer.visible = true
       const wpm = this.engine.wpm
       const acc = this.engine.accuracy
@@ -177,6 +201,11 @@ export class TypingScreen extends BaseScreen {
         fg(theme.untyped)("Press Enter to continue...")
       ])
     } else {
+      this.topRowContainer.visible = true
+      const recentWpm = this.engine.recentWpm
+      this.liveWpmRenderable.content = new StyledText([
+        fg(theme.fg)(recentWpm === null ? "--" : String(recentWpm))
+      ])
       this.resultsContainer.visible = false
       this.statsRenderable.content = ""
       this.promptRenderable.content = ""

@@ -8,6 +8,7 @@ export class TypingEngine {
   public readonly text: string
   private _cursorPosition = 0
   private _charStatuses: CharStatus[]
+  private _charTimestamps: number[] = []
   private _currentStreak = 0
   private _startTime: number | null = null
   private _endTime: number | null = null
@@ -63,6 +64,34 @@ export class TypingEngine {
   }
 
   /**
+   * Calculates WPM based on a rolling window of recent characters (last 5-10)
+   */
+  get recentWpm(): number | null {
+    const MIN_CHARS = 5
+    const MAX_CHARS = 10
+
+    if (this._charTimestamps.length < MIN_CHARS) return null
+
+    const windowSize = Math.min(this._charTimestamps.length, MAX_CHARS)
+    const recentTimestamps = this._charTimestamps.slice(-windowSize)
+
+    const firstTimestamp = recentTimestamps[0]
+    const lastTimestamp = recentTimestamps[recentTimestamps.length - 1]
+
+    if (firstTimestamp === undefined || lastTimestamp === undefined) return null
+
+    const timeMs = lastTimestamp - firstTimestamp
+    if (timeMs <= 0) return null
+
+    // Standard WPM formula: (Characters / 5) / Minutes
+    // charsTyped is windowSize - 1 because we calculate time between the first and last char in the window
+    const charsTyped = windowSize - 1
+    const timeInMinutes = timeMs / 60000
+
+    return Math.round((charsTyped / 5) / timeInMinutes)
+  }
+
+  /**
    * Processes a single character input.
    * @param char The character typed by the user.
    * @returns true if the input was processed (valid move), false if ignored (e.g. game over)
@@ -85,6 +114,7 @@ export class TypingEngine {
     }
 
     this._cursorPosition++
+    this._charTimestamps.push(Date.now())
 
     if (this._cursorPosition >= this.text.length) {
       this._endTime = Date.now()

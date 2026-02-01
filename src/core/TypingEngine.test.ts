@@ -1,12 +1,16 @@
-import { describe, it, expect, beforeEach } from "bun:test"
+import { describe, it, expect, beforeEach, spyOn, afterEach } from "bun:test"
 import { TypingEngine, CharStatus } from "./TypingEngine"
 
 describe("TypingEngine", () => {
   let engine: TypingEngine
-  const text = "Hello"
+  const text = "Hello World"
 
   beforeEach(() => {
     engine = new TypingEngine(text)
+  })
+
+  afterEach(() => {
+    // Bun's spyOn doesn't always need manual restore in afterEach if declared inside describe
   })
 
   it("should initialize correctly", () => {
@@ -64,7 +68,7 @@ describe("TypingEngine", () => {
   })
 
   it("should complete the text and stop timer", async () => {
-    const chars = "Hello".split("")
+    const chars = text.split("")
     
     for (const char of chars) {
       engine.processInput(char)
@@ -72,18 +76,49 @@ describe("TypingEngine", () => {
     }
 
     expect(engine.isComplete).toBe(true)
-    expect(engine.cursorPosition).toBe(5)
+    expect(engine.cursorPosition).toBe(text.length)
     expect(engine.endTime).not.toBeNull()
     expect(engine.wpm).toBeGreaterThan(0)
   })
 
   it("should not process input after completion", () => {
-    "Hello".split("").forEach(char => {
+    text.split("").forEach(char => {
       engine.processInput(char)
     })
 
     const result = engine.processInput("!")
     expect(result).toBe(false)
-    expect(engine.cursorPosition).toBe(5)
+    expect(engine.cursorPosition).toBe(11) // "Hello World".length
+  })
+
+  it("should calculate recentWpm based on rolling window", () => {
+    let now = Date.now()
+    spyOn(Date, 'now').mockImplementation(() => now)
+
+    // First 4 characters should return null
+    for (let i = 0; i < 4; i++) {
+      engine.processInput(text[i]!)
+      expect(engine.recentWpm).toBeNull()
+      now += 100 // 100ms per char
+    }
+
+    // 5th character should return a value
+    engine.processInput(text[4]!)
+    // 5 characters in 400ms (0.4s = 0.00666 minutes)
+    // Formula: (4/5) / (400/60000) = 0.8 / 0.006666 = 120 WPM
+    expect(engine.recentWpm).toBe(120)
+
+    // Add more characters to exceed window size (10)
+    now += 100
+    for (let i = 5; i < 11; i++) {
+      engine.processInput(text[i] ?? " ")
+      now += 100
+    }
+
+    // After 11 characters, it should only use the last 10
+    // Last 10 timestamps are separated by 100ms each = 900ms total
+    // Chars typed in window = 9
+    // WPM: (9/5) / (900/60000) = 1.8 / 0.015 = 120 WPM
+    expect(engine.recentWpm).toBe(120)
   })
 })
