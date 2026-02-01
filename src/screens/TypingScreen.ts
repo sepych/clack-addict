@@ -91,7 +91,7 @@ export class TypingScreen extends BaseScreen {
   render(): BoxRenderable {
     const theme = this.context.currentTheme
 
-    return new BoxRenderable(
+    const container = new BoxRenderable(
       this.context.renderer,
       {
         width: "100%",
@@ -102,18 +102,35 @@ export class TypingScreen extends BaseScreen {
         flexDirection: "column",
       }
     )
+
+    container.add(this.fireRenderable)
+    container.add(this.textRenderable)
+    container.add(this.resultsContainer)
+    container.add(this.promptRenderable)
+
+    return container
   }
 
   override onEnter(): void {
     this.updateDisplay()
+    // Mark screen as active
+    ;(this as any)._isActive = true
+    
     // Start animation loop
     const interval = setInterval(() => {
-      this.fireFrame++
-      this.fireRenderable.content = renderFire(
-        this.fireFrame,
-        Math.floor(this.engine.currentStreak / 10)
-      )
-      this.context.renderer.requestRender()
+      // Double-check if screen is still active before updating
+      if ((this as any)._isActive) {
+        try {
+          this.fireFrame++
+          this.fireRenderable.content = renderFire(
+            this.fireFrame,
+            Math.floor(this.engine.currentStreak / 10)
+          )
+          this.context.renderer.requestRender()
+        } catch (e) {
+          // Silently ignore errors if renderable is destroyed
+        }
+      }
     }, 150)
 
     // Store interval for cleanup
@@ -121,6 +138,8 @@ export class TypingScreen extends BaseScreen {
   }
 
   override onExit(): void {
+    // Mark screen as inactive
+    ;(this as any)._isActive = false
     // Clean up animation loop
     const interval = (this as any)._animationInterval
     if (interval) {

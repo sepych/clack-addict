@@ -1,6 +1,7 @@
 import { KeyEvent } from "@opentui/core"
 import { ScreenManager } from "../screens/ScreenManager.ts"
-import type { EscapeMenu } from "../ui/EscapeMenu.ts"
+import { EscapeMenuScreen } from "../screens/EscapeMenuScreen.ts"
+import type { AppContext } from "../core/AppContext.ts"
 
 export interface InputHandler {
   onKeypress(event: KeyEvent): void
@@ -8,35 +9,24 @@ export interface InputHandler {
 
 /**
  * Central input dispatcher
- * Handles global shortcuts, escape menu, and delegates to screen
+ * Handles global shortcuts and delegates to screen
  */
 export class InputManager {
-  private escapeMenu: EscapeMenu | null = null
-
   constructor(
     private screenManager: ScreenManager,
+    private context: AppContext,
     private onGlobalExit: () => void
   ) {}
-
-  setEscapeMenu(menu: EscapeMenu): void {
-    this.escapeMenu = menu
-  }
 
   /**
     * Handle a keypress event
     * Returns true if the key was handled, false otherwise
     */
   handleKeypress(event: KeyEvent): boolean {
-    // Escape menu handling (takes priority)
-    if (this.escapeMenu && this.escapeMenu.isMenuActive()) {
-      this.escapeMenu.onKeypress(event)
-      return true
-    }
-
-    // Escape key opens menu
+    // Escape key pushes menu screen (only on root screen)
     if (event.name === "escape") {
-      if (this.escapeMenu) {
-        this.escapeMenu.open()
+      if (this.screenManager.getStackSize() === 1) {
+        this.screenManager.push(new EscapeMenuScreen(this.context))
         return true
       }
     }
