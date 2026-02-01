@@ -103,6 +103,8 @@ export class ThemeScreen extends BaseScreen {
 
     // Theme list
     const chunks: TextChunk[] = []
+    const maxNameLength = Math.max(...this.themes.map(t => t.name.length))
+
     for (let i = 0; i < this.themes.length; i++) {
       const t = this.themes[i]
       if (t === undefined) continue
@@ -112,14 +114,15 @@ export class ThemeScreen extends BaseScreen {
         chunks.push(fg(theme.fg)("\n"))
       }
 
+      const paddedName = t.name.padEnd(maxNameLength)
       if (isSelected) {
         chunks.push(
           bg(theme.cursorBg)(
-            fg(theme.bg)(`> ${t.name} `)
+            fg(theme.bg)(`> ${paddedName} `)
           )
         )
       } else {
-        chunks.push(fg(theme.fg)(`  ${t.name}`))
+        chunks.push(fg(theme.fg)(`  ${paddedName} `))
       }
     }
     this.listRenderable.content = new StyledText(chunks)

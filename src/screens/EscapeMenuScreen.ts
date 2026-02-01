@@ -124,6 +124,8 @@ export class EscapeMenuScreen extends BaseScreen {
 
     // Menu content
     const chunks: TextChunk[] = []
+    const maxLabelLength = Math.max(...this.options.map(o => o.label.length))
+
     for (let i = 0; i < this.options.length; i++) {
       const option = this.options[i]
       if (option === undefined) continue
@@ -133,10 +135,11 @@ export class EscapeMenuScreen extends BaseScreen {
         chunks.push(fg(theme.fg)("\n"))
       }
 
+      const paddedLabel = option.label.padEnd(maxLabelLength)
       if (isSelected) {
-        chunks.push(bg(theme.cursorBg)(fg(theme.bg)(` > ${option.label} `)))
+        chunks.push(bg(theme.cursorBg)(fg(theme.bg)(` > ${paddedLabel} `)))
       } else {
-        chunks.push(fg(theme.fg)(`   ${option.label}`))
+        chunks.push(fg(theme.fg)(`   ${paddedLabel} `))
       }
     }
     this.contentRenderable.content = new StyledText(chunks)
