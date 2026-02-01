@@ -97,13 +97,13 @@ describe("TypingEngine", () => {
 
     // First 4 characters should return null
     for (let i = 0; i < 4; i++) {
-      engine.processInput(text[i]!)
+      engine.processInput(text[i] ?? "")
       expect(engine.recentWpm).toBeNull()
       now += 100 // 100ms per char
     }
 
     // 5th character should return a value
-    engine.processInput(text[4]!)
+    engine.processInput(text[4] ?? "")
     // 5 characters in 400ms (0.4s = 0.00666 minutes)
     // Formula: (4/5) / (400/60000) = 0.8 / 0.006666 = 120 WPM
     expect(engine.recentWpm).toBe(120)

@@ -80,11 +80,32 @@ export const THEME_NORD: Theme = {
   }
 }
 
+export const THEME_ONE_LIGHT: Theme = {
+  name: 'One Light',
+  bg: '#fafafa',
+  fg: '#383a42',
+  resultBg: '#f0f0f1',
+  cursorBg: '#526fff',
+  correct: '#50a14f',
+  incorrect: '#e45649',
+  untyped: '#a0a1a7',
+  streak: {
+    lvl1: '#4078f2',   // Blue
+    lvl2: '#50a14f',   // Green
+    lvl3: '#986801',   // Yellow/Dark Gold
+    lvl4: '#d75f00',   // Orange
+    lvl5: '#e45649',   // Red
+    lvl6: '#a626a4',   // Purple
+    lvl7: '#ca1243',   // Crimson
+  }
+}
+
 export const ALL_THEMES: Record<string, Theme> = {
   tokyo_night: THEME_TOKYO_NIGHT,
   dracula: THEME_DRACULA,
   monokai: THEME_MONOKAI,
   nord: THEME_NORD,
+  one_light: THEME_ONE_LIGHT,
 }
 
 // Legacy export for backward compatibility
