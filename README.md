@@ -4,6 +4,9 @@ An unhinged, terminal-based typing speed test built for speed demons and keyboar
 
 *Terminal aesthetics for the truly obsessed.*
 
+[Screencast from 2026-02-01 21-14-10.webm](https://github.com/user-attachments/assets/edb7d3ad-f538-467e-9a8b-14fdf84181ec)
+
+
 ## 🔥 Features
 
 - **Blazing Fast**: Built with Bun and `@opentui/core` for minimal latency.
