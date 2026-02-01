@@ -66,7 +66,12 @@ const FRAMES = [
  */
 export function renderFire(frameIndex: number, level = 0): StyledText {
   if (level < 1) {
-    return new StyledText([])
+    // Return placeholder with same dimensions (4 chars wide, 2 lines tall)
+    // to prevent layout jumps when fire activates
+    return new StyledText([
+      fg(THEME.bg)("    "),
+      fg(THEME.bg)("\n    ")
+    ])
   }
 
   // Clamp level to max 7
