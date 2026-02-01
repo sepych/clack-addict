@@ -3,7 +3,7 @@ import { Database } from "bun:sqlite";
 export class TypingStatsDatabase {
   private db: Database;
 
-  constructor(dbPath: string = "typing_stats.sqlite") {
+  constructor(dbPath = "typing_stats.sqlite") {
     this.db = new Database(dbPath, { create: true });
     this.init();
   }
@@ -35,7 +35,7 @@ export class TypingStatsDatabase {
     const query = this.db.query(`
       SELECT MAX(wpm) as max_wpm FROM sessions
     `);
-    const result = query.get() as { max_wpm: number | null };
+    const result = query.get() as { max_wpm: number | null } | null;
     return result?.max_wpm ?? 0;
   }
 
@@ -43,11 +43,11 @@ export class TypingStatsDatabase {
     const query = this.db.query(`
       SELECT MAX(accuracy) as max_acc FROM sessions
     `);
-    const result = query.get() as { max_acc: number | null };
+    const result = query.get() as { max_acc: number | null } | null;
     return result?.max_acc ?? 0;
   }
 
-  getDailyAverages(days: number = 7): Array<{ date: string; avgWpm: number; count: number }> {
+  getDailyAverages(days = 7): { date: string; avgWpm: number; count: number }[] {
     // timestamp is in ms, unixepoch expects seconds
     const query = this.db.query(`
       SELECT 
@@ -62,7 +62,7 @@ export class TypingStatsDatabase {
 
     const limit = Date.now() - (days * 24 * 60 * 60 * 1000);
     
-    const results = query.all({ $limit: limit }) as Array<{ day_date: string; avg_wpm: number; count: number }>;
+    const results = query.all({ $limit: limit }) as { day_date: string; avg_wpm: number; count: number }[];
     
     return results.map(r => ({
       date: r.day_date,

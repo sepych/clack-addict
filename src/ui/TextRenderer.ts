@@ -1,13 +1,14 @@
 import { bg, fg, StyledText } from "@opentui/core"
+import type { TextChunk } from "@opentui/core"
 import { TypingEngine, CharStatus } from "../core/TypingEngine"
 import { THEME } from "../config/theme"
 
 export function renderGameText(engine: TypingEngine): StyledText {
-  const chunks: any[] = []
+  const chunks: TextChunk[] = []
   const text = engine.text
 
   for (let i = 0; i < text.length; i++) {
-    const char = text[i]!
+    const char = text[i] ?? ""
     const status = engine.getCharStatus(i)
     
     // Highlight cursor position

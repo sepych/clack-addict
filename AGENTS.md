@@ -37,10 +37,14 @@ bun test "user"
 ```
 
 ### Type Checking & Linting
-Since this project uses Bun with `module: "Preserve"`, we use `tsc` for type verification.
-**Always run this before committing.**
+Since this project uses Bun with `module: "Preserve"`, we use `tsc` for type verification and `eslint` for code quality.
+**Always run these before committing.**
 ```bash
+# Type check
 bun x tsc --noEmit
+
+# Lint
+bun run lint
 ```
 
 ### Dependency Management
@@ -180,7 +184,8 @@ describe("TypingEngine", () => {
 
 ## Pre-commit Checklist
 1. [ ] **Type Check**: Run `bun x tsc --noEmit` - Ensure 0 errors.
-2. [ ] **Test**: Run `bun test` - Ensure all tests pass.
-3. [ ] **Verify**: Run `bun run index.ts` - Check UI and Input manually.
+2. [ ] **Lint**: Run `bun run lint` - Ensure 0 errors.
+3. [ ] **Test**: Run `bun test` - Ensure all tests pass.
+4. [ ] **Verify**: Run `bun run index.ts` - Check UI and Input manually.
 4. [ ] **Cleanup**: Remove `console.log` debugging artifacts.
 5. [ ] **Update**: Update `AGENTS.md` if adding new tools or patterns.

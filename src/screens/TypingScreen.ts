@@ -17,7 +17,9 @@ export class TypingScreen extends BaseScreen {
 
   private currentState: GameState = 'PLAYING'
   private engine: TypingEngine
-  private fireFrame: number = 0
+  private fireFrame = 0
+  private _isActive = false
+  private _animationInterval: Timer | null = null
 
   // UI Renderables
   private textRenderable: TextRenderable
@@ -73,7 +75,7 @@ export class TypingScreen extends BaseScreen {
     }
 
     // PLAYING state - handle character input
-    if (event.sequence && event.sequence.length === 1) {
+    if (event.sequence.length === 1) {
       const char = event.sequence
 
       const processed = this.engine.processInput(char)
@@ -114,12 +116,12 @@ export class TypingScreen extends BaseScreen {
   override onEnter(): void {
     this.updateDisplay()
     // Mark screen as active
-    ;(this as any)._isActive = true
+    this._isActive = true
     
     // Start animation loop
-    const interval = setInterval(() => {
+    this._animationInterval = setInterval(() => {
       // Double-check if screen is still active before updating
-      if ((this as any)._isActive) {
+      if (this._isActive) {
         try {
           this.fireFrame++
           this.fireRenderable.content = renderFire(
@@ -127,23 +129,20 @@ export class TypingScreen extends BaseScreen {
             Math.floor(this.engine.currentStreak / 10)
           )
           this.context.renderer.requestRender()
-        } catch (e) {
+        } catch (_e) {
           // Silently ignore errors if renderable is destroyed
         }
       }
     }, 150)
-
-    // Store interval for cleanup
-    ;(this as any)._animationInterval = interval
   }
 
   override onExit(): void {
     // Mark screen as inactive
-    ;(this as any)._isActive = false
+    this._isActive = false
     // Clean up animation loop
-    const interval = (this as any)._animationInterval
-    if (interval) {
-      clearInterval(interval)
+    if (this._animationInterval) {
+      clearInterval(this._animationInterval)
+      this._animationInterval = null
     }
   }
 
@@ -168,7 +167,7 @@ export class TypingScreen extends BaseScreen {
       const wpm = this.engine.wpm
       const acc = this.engine.accuracy
       this.statsRenderable.content = new StyledText([
-        fg(theme.fg)(`WPM: ${wpm}   ACC: ${acc}%`)
+        fg(theme.fg)(`WPM: ${String(wpm)}   ACC: ${String(acc)}%`)
       ])
       this.promptRenderable.content = new StyledText([
         fg(theme.untyped)("Press Enter to continue...")

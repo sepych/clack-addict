@@ -1,4 +1,5 @@
 import { StyledText, fg, bg } from "@opentui/core"
+import type { TextChunk } from "@opentui/core"
 import { THEME } from "../config/theme"
 
 interface FirePalette {
@@ -63,7 +64,7 @@ const FRAMES = [
  * @param frameIndex The animation frame index
  * @param level The fire level (0 = hidden, 1-7 = intensity)
  */
-export function renderFire(frameIndex: number, level: number = 0): StyledText {
+export function renderFire(frameIndex: number, level = 0): StyledText {
   if (level < 1) {
     return new StyledText([])
   }
@@ -75,19 +76,19 @@ export function renderFire(frameIndex: number, level: number = 0): StyledText {
   
   if (!palette || !rawFrame) return new StyledText([])
 
-  const chunks: any[] = []
+  const chunks: TextChunk[] = []
 
   // Process 2 rows at a time to create 1 line of blocks
   for (let y = 0; y < rawFrame.length; y += 2) {
-    const topRow = rawFrame[y] || ""
-    const botRow = rawFrame[y + 1] || ""
+    const topRow = rawFrame[y] ?? ""
+    const botRow = rawFrame[y + 1] ?? ""
 
     // Determine width (max of both rows)
     const width = Math.max(topRow.length, botRow.length)
 
     for (let x = 0; x < width; x++) {
-      const topChar = topRow[x] || ' '
-      const botChar = botRow[x] || ' '
+      const topChar = topRow[x] ?? ' '
+      const botChar = botRow[x] ?? ' '
 
       const topRole = CHAR_TO_ROLE[topChar]
       const botRole = CHAR_TO_ROLE[botChar]

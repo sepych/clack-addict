@@ -6,15 +6,15 @@ export enum CharStatus {
 
 export class TypingEngine {
   public readonly text: string
-  private _cursorPosition: number = 0
+  private _cursorPosition = 0
   private _charStatuses: CharStatus[]
-  private _currentStreak: number = 0
+  private _currentStreak = 0
   private _startTime: number | null = null
   private _endTime: number | null = null
 
   constructor(text: string) {
     this.text = text
-    this._charStatuses = new Array(text.length).fill(CharStatus.Untyped)
+    this._charStatuses = Array.from({ length: text.length }, () => CharStatus.Untyped)
   }
 
   get cursorPosition(): number {
@@ -72,9 +72,7 @@ export class TypingEngine {
       return false
     }
 
-    if (this._startTime === null) {
-      this._startTime = Date.now()
-    }
+    this._startTime ??= Date.now()
 
     const expectedChar = this.text[this._cursorPosition]
     
@@ -88,7 +86,7 @@ export class TypingEngine {
 
     this._cursorPosition++
 
-    if (this.isComplete) {
+    if (this._cursorPosition >= this.text.length) {
       this._endTime = Date.now()
     }
 

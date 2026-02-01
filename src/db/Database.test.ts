@@ -11,7 +11,7 @@ describe("TypingStatsDatabase", () => {
     db.close();
     try {
       unlinkSync(TEST_DB);
-    } catch (e) {
+    } catch (_e) {
       // ignore
     }
   });
@@ -30,8 +30,9 @@ describe("TypingStatsDatabase", () => {
     // current time is used, so it will fall into today
     const stats = db.getDailyAverages(7);
     expect(stats.length).toBeGreaterThan(0);
-    if (stats.length > 0) {
-      expect(stats[0]!.count).toBeGreaterThanOrEqual(3);
+    const firstStat = stats[0];
+    if (firstStat) {
+      expect(firstStat.count).toBeGreaterThanOrEqual(3);
     }
   });
 });

@@ -147,12 +147,14 @@ const UNKNOWN_CHAR = [
 ];
 
 export function renderBigText(text: string, color: string): StyledText {
-  const rows: string[] = Array(CHAR_HEIGHT).fill("");
+  const rows: string[] = Array.from({ length: CHAR_HEIGHT }, () => "");
 
   for (const char of text.toUpperCase()) {
-    const charData = CHARS[char] || UNKNOWN_CHAR;
+    const charData = CHARS[char] ?? UNKNOWN_CHAR;
     for (let i = 0; i < CHAR_HEIGHT; i++) {
-      rows[i] += charData[i] + " "; // Add 1px gap between chars
+      const line = charData[i] ?? "";
+      const currentRow = rows[i] ?? "";
+      rows[i] = currentRow + line + " "; // Add 1px gap between chars
     }
   }
 

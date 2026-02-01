@@ -2,7 +2,6 @@ import { Box, BoxRenderable, TextRenderable, StyledText, fg, bg } from "@opentui
 import type { KeyEvent } from "@opentui/core"
 import { BaseScreen } from "./Screen.ts"
 import { AppContext } from "../core/AppContext.ts"
-import { TypingScreen } from "./TypingScreen.ts"
 import { ThemeScreen } from "./ThemeScreen.ts"
 import { StatsScreen } from "./StatsScreen.ts"
 
@@ -20,7 +19,7 @@ interface MenuItemConfig {
 export class EscapeMenuScreen extends BaseScreen {
   readonly name = "EscapeMenu"
 
-  private selectedIndex: number = 0
+  private selectedIndex = 0
   private readonly options: MenuItemConfig[] = [
     { label: "Theme", value: "theme" },
     { label: "Stats", value: "stats" },
@@ -54,13 +53,14 @@ export class EscapeMenuScreen extends BaseScreen {
         this.selectOption()
         break
 
-      case "escape":
+      case "escape": {
         // Return to previous screen (game)
         const screenManager = this.context.getScreenManager()
         if (screenManager) {
           screenManager.pop()
         }
         break
+      }
 
       default:
         break
@@ -120,9 +120,8 @@ export class EscapeMenuScreen extends BaseScreen {
         screenManager.push(new StatsScreen(this.context))
         break
 
-      case "quit":
-        process.exit(0)
-        break
+       case "quit":
+         process.exit(0)
     }
   }
 

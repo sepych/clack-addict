@@ -1,5 +1,5 @@
 import { Box, BoxRenderable, TextRenderable, StyledText, fg, bg } from "@opentui/core"
-import type { KeyEvent } from "@opentui/core"
+import type { KeyEvent, TextChunk } from "@opentui/core"
 import { BaseScreen } from "./Screen.ts"
 import { AppContext, type Theme } from "../core/AppContext.ts"
 import { ALL_THEMES } from "../config/themes.ts"
@@ -10,7 +10,7 @@ import { ALL_THEMES } from "../config/themes.ts"
 export class ThemeScreen extends BaseScreen {
   readonly name = 'Theme'
 
-  private selectedIndex: number = 0
+  private selectedIndex = 0
   private themes: Theme[] = []
   private titleRenderable: TextRenderable
   private listRenderable: TextRenderable
@@ -94,7 +94,7 @@ export class ThemeScreen extends BaseScreen {
 
   private updateDisplay(): void {
     const theme = this.context.currentTheme
-    const selectedTheme = this.themes[this.selectedIndex]!
+    const selectedTheme = this.themes[this.selectedIndex]
 
     // Title
     this.titleRenderable.content = new StyledText([
@@ -102,9 +102,10 @@ export class ThemeScreen extends BaseScreen {
     ])
 
     // Theme list
-    const chunks: any[] = []
+    const chunks: TextChunk[] = []
     for (let i = 0; i < this.themes.length; i++) {
-      const t = this.themes[i]!
+      const t = this.themes[i]
+      if (t === undefined) continue
       const isSelected = i === this.selectedIndex
 
       if (i > 0) {
@@ -124,15 +125,17 @@ export class ThemeScreen extends BaseScreen {
     this.listRenderable.content = new StyledText(chunks)
 
     // Preview with selected theme
-    this.previewRenderable.content = new StyledText([
-      fg(selectedTheme.correct)("correct"),
-      fg(selectedTheme.fg)(" "),
-      fg(selectedTheme.incorrect)("incorrect"),
-      fg(selectedTheme.fg)(" "),
-      fg(selectedTheme.untyped)("untyped"),
-      fg(selectedTheme.fg)(" "),
-      bg(selectedTheme.cursorBg)(fg(selectedTheme.bg)("C")),
-    ])
+    if (selectedTheme) {
+      this.previewRenderable.content = new StyledText([
+        fg(selectedTheme.correct)("correct"),
+        fg(selectedTheme.fg)(" "),
+        fg(selectedTheme.incorrect)("incorrect"),
+        fg(selectedTheme.fg)(" "),
+        fg(selectedTheme.untyped)("untyped"),
+        fg(selectedTheme.fg)(" "),
+        bg(selectedTheme.cursorBg)(fg(selectedTheme.bg)("C")),
+      ])
+    }
 
     // Help text
     this.helpRenderable.content = new StyledText([

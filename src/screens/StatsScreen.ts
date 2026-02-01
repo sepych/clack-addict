@@ -1,8 +1,8 @@
 import { Box, BoxRenderable, TextRenderable, StyledText, fg } from "@opentui/core"
-import type { KeyEvent } from "@opentui/core"
+import type { KeyEvent, TextChunk } from "@opentui/core"
 import { BaseScreen } from "./Screen.ts"
 import { AppContext } from "../core/AppContext.ts"
-import { BarChart } from "../ui/BarChart.ts"
+import * as BarChart from "../ui/BarChart.ts"
 
 /**
  * Statistics display screen
@@ -77,14 +77,14 @@ export class StatsScreen extends BaseScreen {
     const bestWpm = this.context.db.getPersonalBestWpm()
     const bestAcc = this.context.db.getPersonalBestAccuracy()
 
-    const pbChunks: any[] = [
+    const pbChunks: TextChunk[] = [
       fg(theme.fg)("Personal Bests\n"),
       fg(theme.untyped)("──────────────\n"),
     ]
     pbChunks.push(fg(theme.fg)("WPM:      "))
     pbChunks.push(fg(theme.correct)(String(bestWpm)))
     pbChunks.push(fg(theme.fg)("\nAccuracy: "))
-    pbChunks.push(fg(theme.correct)(`${bestAcc}%`))
+    pbChunks.push(fg(theme.correct)(String(bestAcc) + "%"))
 
     this.personalBestRenderable.content = new StyledText(pbChunks)
 
@@ -111,7 +111,7 @@ export class StatsScreen extends BaseScreen {
 
       // Combine title and chart - since we can't directly combine StyledText objects,
       // we need to recreate this
-      const chunks: any[] = [
+      const chunks: TextChunk[] = [
         ...title.chunks,
         ...chart.chunks,
       ]
