@@ -74,7 +74,7 @@ export class ThemeScreen extends BaseScreen {
         width: "100%",
         height: "100%",
         backgroundColor: theme.bg,
-        justifyContent: "flex-start",
+        justifyContent: "center",
         alignItems: "center",
         flexDirection: "column",
         padding: 2,
@@ -139,7 +139,7 @@ export class ThemeScreen extends BaseScreen {
 
     // Help text
     this.helpRenderable.content = new StyledText([
-      fg(theme.untyped)("↑↓ Navigate   Enter Apply   Esc Back")
+      fg(theme.untyped)("↑↓ Navigate   Enter Select   Esc Back")
     ])
 
     this.context.renderer.requestRender()

@@ -46,7 +46,7 @@ export class StatsScreen extends BaseScreen {
         width: "100%",
         height: "100%",
         backgroundColor: theme.bg,
-        justifyContent: "flex-start",
+        justifyContent: "center",
         alignItems: "center",
         flexDirection: "column",
         padding: 2,

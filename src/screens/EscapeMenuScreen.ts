@@ -1,5 +1,5 @@
 import { Box, BoxRenderable, TextRenderable, StyledText, fg, bg } from "@opentui/core"
-import type { KeyEvent } from "@opentui/core"
+import type { KeyEvent, TextChunk } from "@opentui/core"
 import { BaseScreen } from "./Screen.ts"
 import { AppContext } from "../core/AppContext.ts"
 import { ThemeScreen } from "./ThemeScreen.ts"
@@ -25,13 +25,16 @@ export class EscapeMenuScreen extends BaseScreen {
     { label: "Stats", value: "stats" },
     { label: "Quit", value: "quit" },
   ]
+  private titleRenderable: TextRenderable
   private contentRenderable: TextRenderable
+  private helpRenderable: TextRenderable
 
   constructor(context: AppContext) {
     super(context)
-    this.contentRenderable = new TextRenderable(context.renderer, {
-      content: this.renderMenuContent(),
-    })
+    this.titleRenderable = new TextRenderable(context.renderer, { content: "" })
+    this.contentRenderable = new TextRenderable(context.renderer, { content: "" })
+    this.helpRenderable = new TextRenderable(context.renderer, { content: "" })
+    this.updateDisplay()
   }
 
   onKeypress(event: KeyEvent): void {
@@ -78,28 +81,14 @@ export class EscapeMenuScreen extends BaseScreen {
       width: "100%",
       height: "100%",
       backgroundColor: theme.bg,
+      padding: 2,
     })
 
-    // Inner box with border
-    container.add(
-      Box(
-        {
-          flexDirection: "column",
-          alignItems: "center",
-          borderStyle: "rounded",
-          padding: 1,
-          backgroundColor: theme.bg,
-        },
-        Box(
-          {
-            padding: 1,
-            flexDirection: "column",
-            alignItems: "center",
-          },
-          this.contentRenderable
-        )
-      )
-    )
+    container.add(this.titleRenderable)
+    container.add(Box({ height: 1 }))
+    container.add(this.contentRenderable)
+    container.add(Box({ height: 1 }))
+    container.add(this.helpRenderable)
 
     return container
   }
@@ -126,39 +115,37 @@ export class EscapeMenuScreen extends BaseScreen {
   }
 
   private updateDisplay(): void {
-    this.contentRenderable.content = this.renderMenuContent()
-    this.context.renderer.requestRender()
-  }
-
-  private renderMenuContent(): StyledText {
     const theme = this.context.currentTheme
-    const lines: string[] = ["", "  PAUSED", ""]
+    
+    // Title
+    this.titleRenderable.content = new StyledText([
+      fg(theme.fg)("Paused")
+    ])
 
+    // Menu content
+    const chunks: TextChunk[] = []
     for (let i = 0; i < this.options.length; i++) {
       const option = this.options[i]
       if (option === undefined) continue
       const isSelected = i === this.selectedIndex
-      const prefix = isSelected ? ">" : " "
-      const line = `  ${prefix} ${option.label}`
-      lines.push(line)
-    }
-
-    lines.push("")
-    lines.push("  ESC: Resume")
-    lines.push("")
-
-    const styledLines = lines.map((line) => {
-      if (line.startsWith("  >") || line.startsWith("   ")) {
-        // Selected or regular option
-        if (line.startsWith("  >")) {
-          return fg(theme.correct)(bg(theme.resultBg)(line))
-        }
-        return fg(theme.fg)(line)
+      
+      if (i > 0) {
+        chunks.push(fg(theme.fg)("\n"))
       }
-      // Headers/instructions
-      return fg(theme.untyped)(line)
-    })
 
-    return new StyledText(styledLines)
+      if (isSelected) {
+        chunks.push(bg(theme.cursorBg)(fg(theme.bg)(` > ${option.label} `)))
+      } else {
+        chunks.push(fg(theme.fg)(`   ${option.label}`))
+      }
+    }
+    this.contentRenderable.content = new StyledText(chunks)
+
+    // Help text
+    this.helpRenderable.content = new StyledText([
+      fg(theme.untyped)("↑↓ Navigate   Enter Select   Esc Back")
+    ])
+
+    this.context.renderer.requestRender()
   }
 }
