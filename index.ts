@@ -3,7 +3,7 @@ import { THEME } from "./src/config/theme.ts"
 import { TypingStatsDatabase } from "./src/db/Database.ts"
 import { AppContext } from "./src/core/AppContext.ts"
 import { ScreenManager } from "./src/screens/ScreenManager.ts"
-import { TypingScreen } from "./src/screens/TypingScreen.ts"
+import { SplashScreen } from "./src/screens/SplashScreen.ts"
 import { InputManager } from "./src/input/InputManager.ts"
 
 const renderer = await createCliRenderer()
@@ -32,8 +32,8 @@ const inputManager = new InputManager(screenManager, context, () => {
 })
 
 // Create and push initial screen
-const typingScreen = new TypingScreen(context)
-screenManager.push(typingScreen)
+const splashScreen = new SplashScreen(context)
+screenManager.push(splashScreen)
 
 // Keep track of current screen renderable
 let currentScreenRenderable: BoxRenderable | null = null
