@@ -53,6 +53,28 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Install platform-specific @opentui/core dependency
+        run: |
+          TARGET="${{ matrix.target }}"
+          case "$TARGET" in
+            *linux-x64*)    PKG_PLAT="linux"  ; PKG_ARCH="x64"   ;;
+            *linux-arm64*)   PKG_PLAT="linux"  ; PKG_ARCH="arm64" ;;
+            *darwin-x64*)    PKG_PLAT="darwin" ; PKG_ARCH="x64"   ;;
+            *darwin-arm64*)  PKG_PLAT="darwin" ; PKG_ARCH="arm64" ;;
+            *windows-x64*)   PKG_PLAT="win32"  ; PKG_ARCH="x64"   ;;
+            *)               PKG_PLAT=""       ; PKG_ARCH=""      ;;
+          esac
+          
+          if [ -n "$PKG_PLAT" ]; then
+            VERSION=$(cat node_modules/@opentui/core/package.json | jq -r .version)
+            echo "Installing @opentui/core-$PKG_PLAT-$PKG_ARCH@$VERSION --force"
+            npm install "@opentui/core-$PKG_PLAT-$PKG_ARCH@$VERSION" --force
+            
+            # Set environment variables for the build step
+            echo "PKG_PLAT=$PKG_PLAT" >> $GITHUB_ENV
+            echo "PKG_ARCH=$PKG_ARCH" >> $GITHUB_ENV
+          fi
+
       - name: Get version
         id: get_version
         run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
@@ -60,7 +82,19 @@ jobs:
       - name: Build binary
         run: |
           VERSION=${{ steps.get_version.outputs.version }}
-          bun build --compile --minify --target=${{ matrix.target }} --define "process.env.BUILD_VERSION=\"$VERSION\"" ./index.ts --outfile clack-addict
+          # Use --define to prune dynamic import branches in @opentui/core
+          # and ensure Bun resolver finds the correct platform package.
+          # Note: for windows, process.platform is 'win32'.
+          
+          PLATFORM_DEF=""
+          if [ -n "$PKG_PLAT" ]; then
+            PLATFORM_DEF="--define \"process.platform='$PKG_PLAT'\" --define \"process.arch='$PKG_ARCH'\""
+          fi
+          
+          eval bun build --compile --minify --target=${{ matrix.target }} \
+            --define \"process.env.BUILD_VERSION=\\\"$VERSION\\\"\" \
+            $PLATFORM_DEF \
+            ./index.ts --outfile clack-addict
 
       - name: Package binary (Unix)
         if: matrix.os != 'windows'
@@ -74,8 +108,13 @@ jobs:
       - name: Package binary (Windows)
         if: matrix.os == 'windows'
         run: |
-          mv clack-addict.exe clack-addict.exe
-          zip -q clack-addict-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.ext }} clack-addict.exe
+          if [ -f clack-addict.exe ]; then
+            zip -q clack-addict-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.ext }} clack-addict.exe
+          else
+            # Fallback if bun didn't add .exe automatically or if it's named differently
+            EXE=$(ls clack-addict*)
+            zip -q clack-addict-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.ext }} $EXE
+          fi
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v1

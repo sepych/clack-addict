@@ -5,6 +5,7 @@
       "name": "tui-monkeytype",
       "dependencies": {
         "@opentui/core": "^0.1.75",
+        "@opentui/core-linux-arm64": "^0.1.75",
       },
       "devDependencies": {
         "@eslint/js": "^9.39.2",
