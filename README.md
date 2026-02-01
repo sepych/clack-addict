@@ -52,6 +52,16 @@ To build a standalone binary:
 bun run build
 ```
 
+## 🗑️ Uninstallation
+
+To completely remove ClackAddict from your system:
+
+1. Remove the installation directory:
+   ```bash
+   rm -rf ~/.clack-addict
+   ```
+2. Open your shell configuration file (e.g., `~/.zshrc`, `~/.bashrc`, or `~/.config/fish/config.fish`) and remove the line that adds `~/.clack-addict/bin` to your `PATH`.
+
 ## 📜 License
 
 MIT
