@@ -75,6 +75,10 @@ export class TypingScreen extends BaseScreen {
     }
 
     // PLAYING state - handle character input
+    if (key === 'return' || key === 'enter') {
+      return
+    }
+
     if (event.sequence.length === 1) {
       const char = event.sequence
 
