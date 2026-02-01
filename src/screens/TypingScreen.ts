@@ -48,14 +48,13 @@ export class TypingScreen extends BaseScreen {
     })
     this.liveWpmRenderable = new TextRenderable(context.renderer, {
       content: new StyledText([fg(context.currentTheme.fg)("0")]),
-      width: '100%',
-      alignItems: 'center',
-      justifyContent: 'center'
     })
 
     this.topRowContainer = new BoxRenderable(context.renderer, {
       flexDirection: "column",
       justifyContent: "center",
+      alignItems: "center",
+      width: TEXT_WIDTH,
     })
     this.topRowContainer.add(this.fireRenderable)
     this.topRowContainer.add(this.liveWpmRenderable)
