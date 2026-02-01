@@ -29,7 +29,7 @@ function updateScreenDisplay(screenWrapper: BoxRenderable) {
   // Remove old screen if it exists
   if (currentScreenRenderable) {
     try {
-      screenWrapper.remove(currentScreenRenderable)
+      screenWrapper.remove(currentScreenRenderable.id)
     } catch (_e) {
       // Ignore removal errors
     }
