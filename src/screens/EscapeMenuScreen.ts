@@ -110,7 +110,11 @@ export class EscapeMenuScreen extends BaseScreen {
         break
 
        case "quit":
-         process.exit(0)
+         if (this.context.onQuit) {
+           this.context.onQuit()
+         } else {
+           process.exit(0)
+         }
     }
   }
 

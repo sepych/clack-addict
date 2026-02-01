@@ -28,6 +28,7 @@ export interface Theme {
  */
 export class AppContext {
   private screenManager: ScreenManager | null = null
+  public onQuit?: () => void
 
   constructor(
     readonly renderer: CliRenderer,

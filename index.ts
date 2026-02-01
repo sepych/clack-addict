@@ -13,9 +13,22 @@ const context = new AppContext(renderer, db, THEME)
 const screenManager = new ScreenManager()
 context.setScreenManager(screenManager)
 
-const inputManager = new InputManager(screenManager, context, () => {
+function cleanup() {
+  const currentScreen = screenManager.getCurrentScreen()
+  if (currentScreen) {
+    currentScreen.onExit()
+  }
+  db.close()
   renderer.destroy()
+}
+
+context.onQuit = () => {
+  cleanup()
   process.exit(0)
+}
+
+const inputManager = new InputManager(screenManager, context, () => {
+  context.onQuit?.()
 })
 
 // Create and push initial screen
