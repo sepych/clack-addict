@@ -17,7 +17,7 @@ An unhinged, terminal-based typing speed test built for speed demons and keyboar
 Install **ClackAddict** with a single command:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/sepych/clack-addict/main/install | bash
+curl -fsSL https://raw.githubusercontent.com/sepych/clack-addict/master/install | bash
 ```
 
 Once installed, simply run:

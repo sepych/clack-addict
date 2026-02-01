@@ -20,8 +20,8 @@ Options:
         --no-modify-path    Don't modify shell config files (.zshrc, .bashrc, etc.)
 
 Examples:
-    curl -fsSL https://raw.githubusercontent.com/$REPO/main/install | bash
-    curl -fsSL https://raw.githubusercontent.com/$REPO/main/install | bash -s -- --version 0.1.0
+    curl -fsSL https://raw.githubusercontent.com/$REPO/master/install | bash
+    curl -fsSL https://raw.githubusercontent.com/$REPO/master/install | bash -s -- --version 0.1.0
 EOF
 }
 
