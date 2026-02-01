@@ -1,9 +1,9 @@
 # AGENTS.md
 
-Instructions for AI agents working on this `tui-monkeytype` project.
+Instructions for AI agents working on this `ClackAddict` project.
 
 ## Project Context
-`tui-monkeytype` is a terminal-based typing speed test application.
+`ClackAddict` is a terminal-based typing speed test application.
 It relies on `@opentui/core` for TUI rendering and `bun` for the runtime/toolchain.
 The project prioritizes clean, strict TypeScript code and a modular architecture.
 
