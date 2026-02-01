@@ -92,6 +92,21 @@ export class TypingEngine {
   }
 
   /**
+   * Maps current recent WPM to a speed level (0-7)
+   * Level 1: 20 WPM
+   * Level 7: 100+ WPM
+   */
+  getSpeedLevel(): number {
+    const wpm = this.recentWpm
+    if (wpm === null || wpm < 20) return 0
+    if (wpm >= 100) return 7
+    
+    // Divide 20-100 range (80 WPM) into 6 steps for levels 1-7
+    // Step size is approx 13.33 WPM
+    return Math.min(6, Math.floor((wpm - 20) / 13.33) + 1)
+  }
+
+  /**
    * Processes a single character input.
    * @param char The character typed by the user.
    * @returns true if the input was processed (valid move), false if ignored (e.g. game over)

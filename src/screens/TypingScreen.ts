@@ -2,7 +2,7 @@ import { Box, BoxRenderable, TextRenderable, StyledText, fg } from "@opentui/cor
 import type { KeyEvent } from "@opentui/core"
 import { BaseScreen } from "./Screen.ts"
 import { AppContext } from "../core/AppContext.ts"
-import { TypingEngine } from "../core/TypingEngine.ts"
+import { TypingEngine, CharStatus } from "../core/TypingEngine.ts"
 import { getRandomSample } from "../config/text.ts"
 import { renderGameText } from "../ui/TextRenderer.ts"
 import { renderFire } from "../ui/FireComponent.ts"
@@ -22,6 +22,12 @@ export class TypingScreen extends BaseScreen {
   private fireFrame = 0
   private _isActive = false
   private _animationInterval: Timer | null = null
+
+  // Fire State Machine
+  private fireMode = false
+  private fireLevel = 0
+  private peakLevel = 0
+  private levelUpTimestamp: number | null = null
 
   // UI Renderables
   private textRenderable: TextRenderable
@@ -102,6 +108,22 @@ export class TypingScreen extends BaseScreen {
       const processed = this.engine.processInput(char)
 
       if (processed) {
+        // Handle Fire Mode Transitions
+        const isCorrect = this.engine.getCharStatus(this.engine.cursorPosition - 1) === CharStatus.Correct
+        
+        if (!isCorrect) {
+          // Instant Kill on Typo
+          this.exitFireMode()
+        } else if (!this.fireMode && this.engine.currentStreak >= 10) {
+          const initialLevel = this.engine.getSpeedLevel()
+          if (initialLevel >= 1) {
+            this.fireMode = true
+            this.fireLevel = initialLevel
+            this.peakLevel = initialLevel
+            this.levelUpTimestamp = null
+          }
+        }
+
         if (this.engine.isComplete) {
           this.currentState = 'COMPLETE'
           this.context.db.saveSession(this.engine.wpm, this.engine.accuracy)
@@ -145,13 +167,41 @@ export class TypingScreen extends BaseScreen {
       if (this._isActive) {
         try {
           this.fireFrame++
+
+          if (this.fireMode) {
+            const targetLevel = this.engine.getSpeedLevel()
+
+            // Level UP with momentum (1 second delay)
+            if (targetLevel > this.fireLevel) {
+              if (this.levelUpTimestamp === null) {
+                this.levelUpTimestamp = Date.now()
+              } else if (Date.now() - this.levelUpTimestamp >= 1000) {
+                this.fireLevel++
+                this.peakLevel = Math.max(this.peakLevel, this.fireLevel)
+                this.levelUpTimestamp = null
+              }
+            } else {
+              this.levelUpTimestamp = null // Reset timer if speed drops or stays same
+            }
+
+            // Level DOWN (immediate)
+            if (targetLevel < this.fireLevel) {
+              this.fireLevel = targetLevel
+              // Dramatic drop check: if we dropped more than 1 level from peak
+              if (this.fireLevel < this.peakLevel - 1 || this.fireLevel === 0) {
+                this.exitFireMode()
+              }
+            }
+          }
+
           this.fireRenderable.content = renderFire(
             this.fireFrame,
-            Math.floor(this.engine.currentStreak / 10)
+            this.fireMode ? this.fireLevel : 0
           )
+
           const recentWpm = this.engine.recentWpm
           this.liveWpmRenderable.content = new StyledText([
-            fg(this.getStreakColor())(recentWpm === null ? "--" : String(recentWpm))
+            fg(this.getFireColor())(recentWpm === null ? "--" : String(recentWpm))
           ])
           this.context.renderer.requestRender()
         } catch (_e) {
@@ -171,10 +221,18 @@ export class TypingScreen extends BaseScreen {
     }
   }
 
+  private exitFireMode(): void {
+    this.fireMode = false
+    this.fireLevel = 0
+    this.peakLevel = 0
+    this.levelUpTimestamp = null
+  }
+
   private resetGame(): void {
     this.engine = new TypingEngine(getRandomSample())
     this.currentState = 'PLAYING'
     this.fireFrame = 0
+    this.exitFireMode()
     this.updateDisplay()
   }
 
@@ -184,7 +242,7 @@ export class TypingScreen extends BaseScreen {
     this.textRenderable.content = renderGameText(this.engine)
     this.fireRenderable.content = renderFire(
       this.fireFrame,
-      Math.floor(this.engine.currentStreak / 10)
+      this.fireMode ? this.fireLevel : 0
     )
 
     if (this.currentState === 'COMPLETE') {
@@ -207,7 +265,7 @@ export class TypingScreen extends BaseScreen {
       this.topRowContainer.visible = true
       const recentWpm = this.engine.recentWpm
       this.liveWpmRenderable.content = new StyledText([
-        fg(this.getStreakColor())(recentWpm === null ? "--" : String(recentWpm))
+        fg(this.getFireColor())(recentWpm === null ? "--" : String(recentWpm))
       ])
       this.resultsContainer.visible = false
       this.statsRenderable.content = ""
@@ -217,19 +275,22 @@ export class TypingScreen extends BaseScreen {
     this.context.renderer.requestRender()
   }
 
-  private getStreakColor(): string {
+  private getFireColor(): string {
     const theme = this.context.currentTheme
-    const level = Math.floor(this.engine.currentStreak / 10)
+    
+    if (!this.fireMode || this.fireLevel === 0) {
+      return theme.fg
+    }
 
-    switch (level) {
-      case 0: return theme.fg
+    switch (this.fireLevel) {
       case 1: return theme.streak.lvl1
       case 2: return theme.streak.lvl2
       case 3: return theme.streak.lvl3
       case 4: return theme.streak.lvl4
       case 5: return theme.streak.lvl5
       case 6: return theme.streak.lvl6
-      default: return theme.streak.lvl7
+      case 7: return theme.streak.lvl7
+      default: return theme.fg
     }
   }
 
